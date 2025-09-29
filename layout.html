@@ -469,6 +469,17 @@
             box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
         }
 
+        #resetAllBtn {
+            background: linear-gradient(145deg, #FF5722 0%, #FF7043 100%);
+            color: white;
+        }
+
+        #resetAllBtn:hover {
+            background: linear-gradient(145deg, #D84315 0%, #FF5722 100%);
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+        }
+
         #loadImageInput {
             display: none;
         }
@@ -525,6 +536,7 @@
                 <button class="btn btn-primary" id="nextBtn" style="display: none;">✨ Next</button>
                 <button class="btn btn-secondary" id="undoBtn" disabled>↶ Undo</button>
                 <button class="btn btn-secondary" id="resetBtn">🔄 Làm lại</button>
+                <button class="btn btn-secondary" id="resetAllBtn">🗑️ Xóa tất cả</button>
                 <button class="btn btn-secondary" id="backBtn">🏠 Quay lại</button>
                 <button class="btn btn-primary" id="loadImageBtn">📁 Tải ảnh</button>
             </div>
@@ -642,11 +654,10 @@
                 this.canvas = document.getElementById('mainCanvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.canvasFrame = document.querySelector('.canvas-frame');
-                this.generateBtn = document.getElementById('generateBtn');
                 this.resetBtn = document.getElementById('resetBtn');
                 this.undoBtn = document.getElementById('undoBtn');
-                this.debugBtn = document.getElementById('debugBtn');
                 this.backBtn = document.getElementById('backBtn');
+                this.loadImageBtn = document.getElementById('loadImageBtn');
                 this.status = document.getElementById('status');
                 this.loadingOverlay = document.getElementById('loadingOverlay');
                 
@@ -875,38 +886,23 @@
                 this.setupKeyboardShortcuts();
 
                 // Button events
-                // Generate button removed
                 this.nextBtn = document.getElementById('nextBtn');
                 this.nextBtn.addEventListener('click', () => this.goToFrameSelection());
                 this.resetBtn.addEventListener('click', () => this.resetLayout());
                 this.undoBtn.addEventListener('click', () => this.undo());
-                this.debugBtn.addEventListener('click', () => this.debugSlots());
                 
-                // Save layout button removed
-                this.backBtn.addEventListener('click', () => window.location.href = 'home.html');
+                // Back button - navigate to home
+                this.backBtn.addEventListener('click', () => {
+                    window.location.href = 'home.html';
+                });
                 
                 // Load image button
                 this.loadImageBtn.addEventListener('click', () => {
                     document.getElementById('loadImageInput').click();
                 });
 
-                // Help button
-                const helpBtn = document.getElementById('helpBtn');
-                const helpInstructions = document.getElementById('helpInstructions');
-                helpBtn.addEventListener('click', () => {
-                    const isVisible = helpInstructions.style.display !== 'none';
-                    helpInstructions.style.display = isVisible ? 'none' : 'block';
-                    helpBtn.textContent = isVisible ? '❓ Help' : '❌ Hide Help';
-                });
-
-                // Load images button
-                const loadImageBtn = document.getElementById('loadImageBtn');
+                // Load image input change event
                 const loadImageInput = document.getElementById('loadImageInput');
-
-                loadImageBtn.addEventListener('click', () => {
-                    loadImageInput.click();
-                });
-
                 loadImageInput.addEventListener('change', (e) => {
                     this.handleImageLoad(e);
                 });
