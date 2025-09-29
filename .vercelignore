@@ -21,9 +21,18 @@ __pycache__/
 # Node modules (if any)
 node_modules/
 
-# Large output folders (optional - you might want to keep these)
-# vintage_output/
-# output/
+# Unused HTML files
+capture.html
+beauty.html
+bua.html
+backupwebcam.html
+logo-test.html
+
+# Unused folders
+galleries/
+vintage_output/
+print_out/
+fonts/
 
 # Backup files
 *.bak
