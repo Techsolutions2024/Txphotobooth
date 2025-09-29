@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty Mode - Webcam Live</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(251, 111, 146, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 182, 193, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 192, 203, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #FFC2D1 0%, #FFB3C6 25%, #FB6F92 50%, #FF8FA3 75%, #FFB3C6 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .beauty-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.03) 2px,
+                    rgba(255, 255, 255, 0.03) 4px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .title-overlay {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .title-overlay h1 {
+            font-size: 3.2em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #E91E63, #FB6F92, #FF8FA3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 6px 12px rgba(233, 30, 99, 0.3);
+            letter-spacing: 0.08em;
+            font-family: 'Segoe UI', sans-serif;
+            animation: beautyGlow 3s ease-in-out infinite alternate;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        @keyframes beautyGlow {
+            from {
+                text-shadow: 0 6px 12px rgba(233, 30, 99, 0.3);
+            }
+            to {
+                text-shadow: 0 8px 16px rgba(233, 30, 99, 0.6);
+            }
+        }
+
+        .left-panel {
+            width: 20%;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-right: 2px solid rgba(251, 111, 146, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+            box-shadow: 
+                2px 0 20px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .control-section {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .control-section h3 {
+            color: #FFF0F5;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 182, 193, 0.6);
+            padding-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .control-button {
+            width: 100%;
+            background: linear-gradient(45deg, rgba(255, 182, 193, 0.8), rgba(255, 192, 203, 0.9));
+            color: #E91E63;
+            border: 2px solid rgba(251, 111, 146, 0.4);
+            padding: 12px 8px;
+            margin: 6px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+            box-shadow: 
+                0 4px 8px rgba(251, 111, 146, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .control-button:hover {
+            background: linear-gradient(45deg, rgba(255, 192, 203, 0.9), rgba(255, 228, 225, 0.95));
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 12px rgba(251, 111, 146, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            border-color: rgba(251, 111, 146, 0.6);
+        }
+
+        .control-button.active {
+            background: linear-gradient(45deg, rgba(251, 111, 146, 0.9), rgba(233, 30, 99, 0.8));
+            color: #FFF0F5;
+            border-color: rgba(233, 30, 99, 0.6);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(251, 111, 146, 0.3);
+        }
+
+        .exit-button {
+            width: 100%;
+            background: linear-gradient(45deg, rgba(139, 0, 0, 0.8), rgba(220, 20, 60, 0.9));
+            color: #FFF0F5;
+            border: 2px solid rgba(220, 20, 60, 0.4);
+            padding: 15px 10px;
+            margin: 20px 0 0 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s ease;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 
+                0 4px 8px rgba(139, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .exit-button:hover {
+            background: linear-gradient(45deg, rgba(220, 20, 60, 0.9), rgba(255, 99, 71, 0.9));
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 12px rgba(139, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(220, 20, 60, 0.6);
+        }
+
+        .main-panel {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 750px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 
+                0 0 40px rgba(0, 0, 0, 0.6),
+                inset 0 0 30px rgba(251, 111, 146, 0.1);
+            border: 3px solid rgba(251, 111, 146, 0.4);
+            position: relative;
+            aspect-ratio: 4/3;
+        }
+
+        .camera-container::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, rgba(255, 182, 193, 0.6), rgba(255, 192, 203, 0.8), rgba(255, 182, 193, 0.6));
+            border-radius: 23px;
+            z-index: -1;
+        }
+
+        .camera-container video, .camera-container canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+            background: #000;
+            object-fit: cover;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(251, 111, 146, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: #FFF0F5;
+            font-size: 1.5em;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                padding: 10px;
+                border-right: none;
+                border-bottom: 3px solid #E91E63;
+            }
+            
+            .control-section {
+                margin-bottom: 0;
+                margin-right: 20px;
+            }
+            
+            .control-button {
+                margin: 3px 2px;
+                padding: 8px 6px;
+                font-size: 0.8em;
+            }
+            
+            .main-panel {
+                width: 100%;
+                height: calc(100vh - 120px);
+            }
+            
+            .title-overlay h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="beauty-overlay"></div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>💄 Khởi tạo Beauty Mode...</div>
+    </div>
+
+    <div class="title-overlay">
+        <h1>BEAUTY MODE</h1>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="control-section">
+                <h3>✨ Mịn da</h3>
+                <button class="control-button active" id="skinOriginal">Nguyên bản</button>
+                <button class="control-button" id="skinMedium">Vừa</button>
+                <button class="control-button" id="skinHigh">Nhiều</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>👤 Thon mặt</h3>
+                <button class="control-button active" id="faceOriginal">Nguyên bản</button>
+                <button class="control-button" id="faceMedium">Vừa</button>
+                <button class="control-button" id="faceHigh">Nhiều</button>
+            </div>
+            
+            <button class="exit-button" id="exitButton">Back</button>
+        </div>
+
+        <div class="main-panel">
+            <div class="camera-container">
+                <video id="originalVideo" autoplay muted playsinline style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;"></video>
+                <canvas id="filteredCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Beauty settings (0-100 as requested)
+        const beautySettings = {
+            smoothness: 0, // 0-100
+            faceSlim: 0    // 0-100
+        };
+
+        // Application logic
+        let videoStream = null;
+        let animationId = null;
+
+        // UI elements
+        const originalVideo = document.getElementById('originalVideo');
+        const filteredCanvas = document.getElementById('filteredCanvas');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        function setActiveControl(controlType, level) {
+            // Remove active class from all buttons in the same group
+            const groupButtons = document.querySelectorAll(`[id^="${controlType}"]`);
+            groupButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to selected button
+            const activeButton = document.getElementById(`${controlType}${level}`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        function updateBeautyEffects(type, level) {
+            if (type === 'skin') {
+                beautySettings.smoothness = level;
+            } else if (type === 'face') {
+                beautySettings.faceSlim = level;
+            }
+        }
+
+        // Control button event listeners
+        document.getElementById('skinOriginal').addEventListener('click', () => {
+            setActiveControl('skin', 'Original');
+            updateBeautyEffects('skin', 0);
+        });
+        
+        document.getElementById('skinMedium').addEventListener('click', () => {
+            setActiveControl('skin', 'Medium');
+            updateBeautyEffects('skin', 1);
+        });
+        
+        document.getElementById('skinHigh').addEventListener('click', () => {
+            setActiveControl('skin', 'High');
+            updateBeautyEffects('skin', 2);
+        });
+
+        document.getElementById('faceOriginal').addEventListener('click', () => {
+            setActiveControl('face', 'Original');
+            updateBeautyEffects('face', 0);
+        });
+        
+        document.getElementById('faceMedium').addEventListener('click', () => {
+            setActiveControl('face', 'Medium');
+            updateBeautyEffects('face', 1);
+        });
+        
+        document.getElementById('faceHigh').addEventListener('click', () => {
+            setActiveControl('face', 'High');
+            updateBeautyEffects('face', 2);
+        });
+
+        // Exit button
+        document.getElementById('exitButton').addEventListener('click', () => {
+            window.location.href = 'home.html';
+        });
+
+        // =====================================
+        // HÀM XỬ LÝ MỊN DA (SKIN SMOOTHING)
+        // =====================================
+
+        function applySkinSmoothing(imageData, intensity, canvas, ctx) {
+            if (intensity === 0) return imageData;
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const smoothedData = new Uint8ClampedArray(data);
+            const blurRadius = Math.floor(intensity / 20) + 1;
+            const factor = intensity / 100;
+
+            for (let y = blurRadius; y < height - blurRadius; y++) {
+                for (let x = blurRadius; x < width - blurRadius; x++) {
+                    const centerIndex = (y * width + x) * 4;
+
+                    if (isSkinPixel(data[centerIndex], data[centerIndex + 1], data[centerIndex + 2])) {
+                        let totalR = 0, totalG = 0, totalB = 0;
+                        let totalWeight = 0;
+                        for (let dy = -blurRadius; dy <= blurRadius; dy++) {
+                            for (let dx = -blurRadius; dx <= blurRadius; dx++) {
+                                const sampleIndex = ((y + dy) * width + (x + dx)) * 4;
+                                const spatialDistance = Math.sqrt(dx * dx + dy * dy);
+                                const colorDistance = Math.sqrt(
+                                    Math.pow(data[centerIndex] - data[sampleIndex], 2) +
+                                    Math.pow(data[centerIndex + 1] - data[sampleIndex + 1], 2) +
+                                    Math.pow(data[centerIndex + 2] - data[sampleIndex + 2], 2)
+                                );
+                                const spatialWeight = Math.exp(-(spatialDistance * spatialDistance) / (2 * blurRadius * blurRadius));
+                                const colorWeight = Math.exp(-(colorDistance * colorDistance) / (2 * 30 * 30));
+                                const weight = spatialWeight * colorWeight;
+                                totalR += data[sampleIndex] * weight;
+                                totalG += data[sampleIndex + 1] * weight;
+                                totalB += data[sampleIndex + 2] * weight;
+                                totalWeight += weight;
+                            }
+                        }
+                        if (totalWeight > 0) {
+                            const smoothedR = totalR / totalWeight;
+                            const smoothedG = totalG / totalWeight;
+                            const smoothedB = totalB / totalWeight;
+                            smoothedData[centerIndex] = data[centerIndex] * (1 - factor) + smoothedR * factor;
+                            smoothedData[centerIndex + 1] = data[centerIndex + 1] * (1 - factor) + smoothedG * factor;
+                            smoothedData[centerIndex + 2] = data[centerIndex + 2] * (1 - factor) + smoothedB * factor;
+                        }
+                    }
+                }
+            }
+            return new ImageData(smoothedData, width, height);
+        }
+
+        function isSkinPixel(r, g, b) {
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            if (max === 0) return false;
+            const saturation = (max - min) / max;
+            const value = max / 255;
+            return (
+                r > 95 && g > 40 && b > 20 &&
+                r > g && r > b &&
+                Math.abs(r - g) > 15 &&
+                saturation > 0.1 && saturation < 0.7 &&
+                value > 0.4
+            );
+        }
+
+        // =====================================
+        // HÀM XỬ LÝ THON MẶT (FACE SLIMMING)
+        // =====================================
+
+        function applyFaceSlimming(imageData, intensity, canvas, ctx) {
+            if (intensity === 0) return imageData;
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const slimmedData = new Uint8ClampedArray(data.length);
+            slimmedData.set(data);
+            const centerX = width / 2;
+            const centerY = height / 2.2;
+            const maxRadius = Math.min(width, height) * 0.3;
+            const slimFactor = intensity / 100 * 0.3;
+            const warpMap = createWarpMap(width, height, centerX, centerY, maxRadius, slimFactor);
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const currentIndex = (y * width + x) * 4;
+                    const warpCoords = warpMap[y][x];
+                    if (warpCoords.sourceX >= 0 && warpCoords.sourceX < width &&
+                        warpCoords.sourceY >= 0 && warpCoords.sourceY < height) {
+                        const interpolatedColor = bilinearInterpolation(
+                            data, width, height, warpCoords.sourceX, warpCoords.sourceY
+                        );
+                        slimmedData[currentIndex] = interpolatedColor.r;
+                        slimmedData[currentIndex + 1] = interpolatedColor.g;
+                        slimmedData[currentIndex + 2] = interpolatedColor.b;
+                        slimmedData[currentIndex + 3] = data[currentIndex + 3];
+                    }
+                }
+            }
+            return new ImageData(slimmedData, width, height);
+        }
+
+        function createWarpMap(width, height, centerX, centerY, maxRadius, slimFactor) {
+            const warpMap = [];
+            for (let y = 0; y < height; y++) {
+                warpMap[y] = [];
+                for (let x = 0; x < width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < maxRadius && distance > 0) {
+                        const normalizedDistance = distance / maxRadius;
+                        const warpStrength = (1 - normalizedDistance) * slimFactor;
+                        const sourceX = centerX + dx * (1 - warpStrength);
+                        const sourceY = centerY + dy * (1 - warpStrength * 0.7);
+                        warpMap[y][x] = { sourceX, sourceY };
+                    } else {
+                        warpMap[y][x] = { sourceX: x, sourceY: y };
+                    }
+                }
+            }
+            return warpMap;
+        }
+
+        function bilinearInterpolation(data, width, height, x, y) {
+            const x1 = Math.floor(x);
+            const y1 = Math.floor(y);
+            const x2 = Math.min(x1 + 1, width - 1);
+            const y2 = Math.min(y1 + 1, height - 1);
+            const dx = x - x1;
+            const dy = y - y1;
+            const getPixel = (px, py) => {
+                const index = (py * width + px) * 4;
+                return { r: data[index], g: data[index + 1], b: data[index + 2] };
+            };
+            const topLeft = getPixel(x1, y1);
+            const topRight = getPixel(x2, y1);
+            const bottomLeft = getPixel(x1, y2);
+            const bottomRight = getPixel(x2, y2);
+            const r = topLeft.r * (1 - dx) * (1 - dy) + topRight.r * dx * (1 - dy) + bottomLeft.r * (1 - dx) * dy + bottomRight.r * dx * dy;
+            const g = topLeft.g * (1 - dx) * (1 - dy) + topRight.g * dx * (1 - dy) + bottomLeft.g * (1 - dx) * dy + bottomRight.g * dx * dy;
+            const b = topLeft.b * (1 - dx) * (1 - dy) + topRight.b * dx * (1 - dy) + bottomLeft.b * (1 - dx) * dy + bottomRight.b * dx * dy;
+            return { r: Math.round(r), g: Math.round(g), b: Math.round(b) };
+        }
+
+        // =====================================
+        // HÀM TÍCH HỢP & SỬ DỤNG
+        // =====================================
+
+        function applyBeautyEffects(canvas, ctx, video, settings) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let processedData = imageData;
+            if (settings.smoothness > 0) {
+                processedData = applySkinSmoothing(processedData, settings.smoothness, canvas, ctx);
+            }
+            if (settings.faceSlim > 0) {
+                processedData = applyFaceSlimming(processedData, settings.faceSlim, canvas, ctx);
+            }
+            ctx.putImageData(processedData, 0, 0);
+        }
+
+        // Auto-start camera
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        facingMode: 'user'
+                    }
+                };
+
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                originalVideo.srcObject = videoStream;
+                await originalVideo.play().catch(() => {/* ignore autoplay errors */});
+
+                const finalizeSetup = () => {
+                    const actualWidth = originalVideo.videoWidth || 1920;
+                    const actualHeight = originalVideo.videoHeight || 1080;
+                    filteredCanvas.width = actualWidth;
+                    filteredCanvas.height = actualHeight;
+                    loadingOverlay.classList.add('hidden');
+                    startProcessing();
+                };
+
+                if (originalVideo.readyState >= 2) {
+                    finalizeSetup();
+                } else {
+                    originalVideo.addEventListener('loadedmetadata', finalizeSetup, { once: true });
+                    originalVideo.addEventListener('playing', finalizeSetup, { once: true });
+                }
+
+            } catch (error) {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        // Process video frames
+        function startProcessing() {
+            function processFrame() {
+                if (!videoStream || originalVideo.readyState < 2) {
+                    animationId = requestAnimationFrame(processFrame);
+                    return;
+                }
+
+                const ctx = filteredCanvas.getContext('2d');
+                
+                // Flip camera horizontally
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.translate(-filteredCanvas.width, 0);
+                
+                // Apply integrated beauty effects with provided API
+                applyBeautyEffects(filteredCanvas, ctx, originalVideo, beautySettings);
+                
+                ctx.restore();
+
+                animationId = requestAnimationFrame(processFrame);
+            }
+
+            processFrame();
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            startCamera();
+        });
+    </script>
+</body>
+</html>

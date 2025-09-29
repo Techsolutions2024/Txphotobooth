@@ -1,0 +1,148 @@
+{
+  "version": 2,
+  "name": "txphotobooth",
+  "builds": [
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "images/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "frames/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "filter/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "fonts/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "galleries/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "output/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "vintage_output/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "print_out/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/home.html"
+    },
+    {
+      "src": "/home",
+      "dest": "/home.html"
+    },
+    {
+      "src": "/vintage",
+      "dest": "/vintage.html"
+    },
+    {
+      "src": "/layout",
+      "dest": "/layout.html"
+    },
+    {
+      "src": "/frame",
+      "dest": "/frame.html"
+    },
+    {
+      "src": "/capture",
+      "dest": "/capture.html"
+    },
+    {
+      "src": "/beauty",
+      "dest": "/beauty.html"
+    },
+    {
+      "src": "/bua",
+      "dest": "/bua.html"
+    },
+    {
+      "src": "/backupwebcam",
+      "dest": "/backupwebcam.html"
+    },
+    {
+      "src": "/logo-test",
+      "dest": "/logo-test.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/frames/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/filter/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "app/api/save-photo.js": {
+      "maxDuration": 10
+    }
+  }
+}

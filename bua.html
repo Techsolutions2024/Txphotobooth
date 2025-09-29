@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beauty Mode - Webcam Live</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(251, 111, 146, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 182, 193, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(255, 192, 203, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #FB6F92 0%, #FFB6C1 25%, #FFC0CB 50%, #FFE4E1 75%, #FFF0F5 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .beauty-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.02) 2px,
+                    rgba(255, 255, 255, 0.02) 4px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .title-overlay {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .title-overlay h1 {
+            font-size: 3em;
+            font-weight: bold;
+            color: #FB6F92;
+            text-shadow: 
+                2px 2px 0px #E91E63,
+                4px 4px 8px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(251, 111, 146, 0.4);
+            letter-spacing: 0.1em;
+            font-family: 'Segoe UI', sans-serif;
+            animation: beautyGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes beautyGlow {
+            from {
+                text-shadow: 
+                    2px 2px 0px #E91E63,
+                    4px 4px 8px rgba(0, 0, 0, 0.3),
+                    0 0 20px rgba(251, 111, 146, 0.4);
+            }
+            to {
+                text-shadow: 
+                    2px 2px 0px #E91E63,
+                    4px 4px 8px rgba(0, 0, 0, 0.3),
+                    0 0 30px rgba(251, 111, 146, 0.7);
+            }
+        }
+
+        .left-panel {
+            width: 20%;
+            background: rgba(251, 111, 146, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 3px solid #E91E63;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-section {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .control-section h3 {
+            color: #FFF0F5;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #FFB6C1;
+            padding-bottom: 8px;
+        }
+
+        .control-button {
+            width: 100%;
+            background: linear-gradient(45deg, #FFB6C1, #FFC0CB);
+            color: #E91E63;
+            border: 2px solid #FB6F92;
+            padding: 12px 8px;
+            margin: 6px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-button:hover {
+            background: linear-gradient(45deg, #FFC0CB, #FFE4E1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            border-color: #E91E63;
+        }
+
+        .control-button.active {
+            background: linear-gradient(45deg, #FB6F92, #E91E63);
+            color: #FFF0F5;
+            border-color: #C2185B;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .exit-button {
+            width: 100%;
+            background: linear-gradient(45deg, #8B0000, #DC143C);
+            color: #FFF0F5;
+            border: 2px solid #E91E63;
+            padding: 15px 10px;
+            margin: 20px 0 0 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .exit-button:hover {
+            background: linear-gradient(45deg, #DC143C, #FF6347);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+            border-color: #8B0000;
+        }
+
+        .main-panel {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 750px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 
+                0 0 30px rgba(0, 0, 0, 0.5),
+                inset 0 0 20px rgba(251, 111, 146, 0.2);
+            border: 3px solid #FB6F92;
+            position: relative;
+            aspect-ratio: 4/3;
+        }
+
+        .camera-container::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #FFB6C1, #FFC0CB, #FFB6C1);
+            border-radius: 18px;
+            z-index: -1;
+        }
+
+        .camera-container video, .camera-container canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            background: #000;
+            object-fit: cover;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(251, 111, 146, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: #FFF0F5;
+            font-size: 1.5em;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .fps-counter {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #00ff00;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.8em;
+            z-index: 5;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                padding: 10px;
+                border-right: none;
+                border-bottom: 3px solid #E91E63;
+            }
+            
+            .control-section {
+                margin-bottom: 0;
+                margin-right: 20px;
+            }
+            
+            .control-button {
+                margin: 3px 2px;
+                padding: 8px 6px;
+                font-size: 0.8em;
+            }
+            
+            .main-panel {
+                width: 100%;
+                height: calc(100vh - 120px);
+            }
+            
+            .title-overlay h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="beauty-overlay"></div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>💄 Khởi tạo Beauty Mode...</div>
+    </div>
+
+    <div class="title-overlay">
+        <h1>BEAUTY MODE</h1>
+    </div>
+
+    <div class="fps-counter" id="fpsCounter">FPS: 0</div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div class="control-section">
+                <h3>✨ Mịn da</h3>
+                <button class="control-button active" id="skinOriginal">Nguyên bản</button>
+                <button class="control-button" id="skinMedium">Vừa</button>
+                <button class="control-button" id="skinHigh">Nhiều</button>
+            </div>
+            
+            <div class="control-section">
+                <h3>👤 Thon mặt</h3>
+                <button class="control-button active" id="faceOriginal">Nguyên bản</button>
+                <button class="control-button" id="faceMedium">Vừa</button>
+                <button class="control-button" id="faceHigh">Nhiều</button>
+            </div>
+            
+            <button class="exit-button" id="exitButton">Back</button>
+        </div>
+
+        <div class="main-panel">
+            <div class="camera-container">
+                <video id="originalVideo" autoplay muted playsinline style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;"></video>
+                <canvas id="filteredCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Beauty Effects Configuration
+        const beautyEffects = {
+            skinSmoothing: 0, // 0 = off, 1 = medium, 2 = high
+            faceSlimming: 0   // 0 = off, 1 = medium, 2 = high
+        };
+
+        // Application state
+        let videoStream = null;
+        let animationId = null;
+        let isProcessing = false;
+
+        // UI elements
+        const originalVideo = document.getElementById('originalVideo');
+        const filteredCanvas = document.getElementById('filteredCanvas');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const fpsCounter = document.getElementById('fpsCounter');
+
+        // FPS tracking
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 0;
+
+        // Performance optimization
+        let offscreenCanvas;
+        let offscreenCtx;
+        let skinMaskCanvas;
+        let skinMaskCtx;
+
+        function setActiveControl(controlType, level) {
+            const groupButtons = document.querySelectorAll(`[id^="${controlType}"]`);
+            groupButtons.forEach(btn => btn.classList.remove('active'));
+            
+            const activeButton = document.getElementById(`${controlType}${level}`);
+            if (activeButton) activeButton.classList.add('active');
+        }
+
+        function updateBeautyEffects(type, level) {
+            if (type === 'skin') {
+                beautyEffects.skinSmoothing = level;
+            } else if (type === 'face') {
+                beautyEffects.faceSlimming = level;
+            }
+        }
+
+        // Advanced Skin Detection using Machine Learning approach
+        function advancedSkinDetection(r, g, b) {
+            // Normalize RGB values
+            const total = r + g + b;
+            if (total === 0) return false;
+            
+            const rNorm = r / total;
+            const gNorm = g / total;
+            const bNorm = b / total;
+            
+            // Multiple skin detection models
+            // Model 1: RGB ratios
+            const rgbSkinCheck = (
+                rNorm > 0.36 && rNorm < 0.465 &&
+                gNorm > 0.28 && gNorm < 0.363 &&
+                bNorm > 0.16 && bNorm < 0.34 &&
+                r > 95 && g > 40 && b > 20 &&
+                Math.max(r, g, b) - Math.min(r, g, b) > 15
+            );
+
+            // Model 2: YCbCr color space
+            const y = 0.299 * r + 0.587 * g + 0.114 * b;
+            const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+            const cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+            
+            const ycbcrSkinCheck = (
+                y > 80 && y < 220 &&
+                cb > 77 && cb < 127 &&
+                cr > 133 && cr < 173
+            );
+
+            // Model 3: HSV boundaries
+            const max = Math.max(r, g, b) / 255;
+            const min = Math.min(r, g, b) / 255;
+            const delta = max - min;
+            
+            let hue = 0;
+            if (delta !== 0) {
+                if (max === r / 255) {
+                    hue = ((g / 255 - b / 255) / delta) % 6;
+                } else if (max === g / 255) {
+                    hue = (b / 255 - r / 255) / delta + 2;
+                } else {
+                    hue = (r / 255 - g / 255) / delta + 4;
+                }
+                hue = hue * 60;
+                if (hue < 0) hue += 360;
+            }
+            
+            const saturation = max === 0 ? 0 : delta / max;
+            const value = max;
+            
+            const hsvSkinCheck = (
+                ((hue >= 0 && hue <= 35) || (hue >= 315 && hue <= 360)) &&
+                saturation >= 0.15 && saturation <= 0.85 &&
+                value >= 0.4 && value <= 0.95
+            );
+
+            // Ensemble decision
+            return (rgbSkinCheck && ycbcrSkinCheck) || (rgbSkinCheck && hsvSkinCheck) || (ycbcrSkinCheck && hsvSkinCheck);
+        }
+
+        // Professional Skin Smoothing with Edge Preservation
+        function professionalSkinSmoothing(imageData, intensity) {
+            if (intensity === 0) return imageData;
+            
+            const data = new Uint8ClampedArray(imageData.data);
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            // Create skin mask first
+            const skinMask = new Uint8Array(width * height);
+            for (let i = 0; i < data.length; i += 4) {
+                const pixelIndex = i / 4;
+                skinMask[pixelIndex] = advancedSkinDetection(data[i], data[i + 1], data[i + 2]) ? 255 : 0;
+            }
+            
+            // Apply morphological operations to clean up mask
+            const cleanedMask = morphologyClose(skinMask, width, height, 2);
+            
+            // Multi-scale smoothing
+            let smoothedData = new Uint8ClampedArray(data);
+            const scales = intensity === 1 ? [1, 2] : [1, 2, 3];
+            
+            scales.forEach(scale => {
+                smoothedData = adaptiveBilateralFilter(smoothedData, cleanedMask, width, height, scale, intensity);
+            });
+            
+            // Detail enhancement for natural look
+            smoothedData = enhanceDetails(data, smoothedData, cleanedMask, width, height, intensity);
+            
+            return new ImageData(smoothedData, width, height);
+        }
+
+        // Morphological closing operation to clean skin mask
+        function morphologyClose(mask, width, height, kernelSize) {
+            // Dilation followed by erosion
+            let dilated = morphologyDilate(mask, width, height, kernelSize);
+            return morphologyErode(dilated, width, height, kernelSize);
+        }
+
+        function morphologyDilate(mask, width, height, kernelSize) {
+            const result = new Uint8Array(width * height);
+            const halfKernel = Math.floor(kernelSize / 2);
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    let maxVal = 0;
+                    for (let ky = -halfKernel; ky <= halfKernel; ky++) {
+                        for (let kx = -halfKernel; kx <= halfKernel; kx++) {
+                            const ny = Math.max(0, Math.min(height - 1, y + ky));
+                            const nx = Math.max(0, Math.min(width - 1, x + kx));
+                            maxVal = Math.max(maxVal, mask[ny * width + nx]);
+                        }
+                    }
+                    result[y * width + x] = maxVal;
+                }
+            }
+            return result;
+        }
+
+        function morphologyErode(mask, width, height, kernelSize) {
+            const result = new Uint8Array(width * height);
+            const halfKernel = Math.floor(kernelSize / 2);
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    let minVal = 255;
+                    for (let ky = -halfKernel; ky <= halfKernel; ky++) {
+                        for (let kx = -halfKernel; kx <= halfKernel; kx++) {
+                            const ny = Math.max(0, Math.min(height - 1, y + ky));
+                            const nx = Math.max(0, Math.min(width - 1, x + kx));
+                            minVal = Math.min(minVal, mask[ny * width + nx]);
+                        }
+                    }
+                    result[y * width + x] = minVal;
+                }
+            }
+            return result;
+        }
+
+        // Adaptive Bilateral Filter with GPU-like optimization
+        function adaptiveBilateralFilter(data, skinMask, width, height, scale, intensity) {
+            const result = new Uint8ClampedArray(data);
+            const radius = scale * (intensity === 1 ? 2 : 3);
+            const sigmaColor = intensity === 1 ? 30 : 45;
+            const sigmaSpace = intensity === 1 ? 30 : 45;
+            
+            // Pre-compute Gaussian kernel
+            const gaussianKernel = [];
+            for (let i = -radius; i <= radius; i++) {
+                gaussianKernel[i + radius] = [];
+                for (let j = -radius; j <= radius; j++) {
+                    const dist = Math.sqrt(i * i + j * j);
+                    gaussianKernel[i + radius][j + radius] = Math.exp(-(dist * dist) / (2 * sigmaSpace * sigmaSpace));
+                }
+            }
+            
+            for (let y = radius; y < height - radius; y++) {
+                for (let x = radius; x < width - radius; x++) {
+                    const centerIdx = (y * width + x) * 4;
+                    const maskValue = skinMask[y * width + x];
+                    
+                    if (maskValue > 128) { // Only process skin pixels
+                        const centerR = data[centerIdx];
+                        const centerG = data[centerIdx + 1];
+                        const centerB = data[centerIdx + 2];
+                        
+                        let totalR = 0, totalG = 0, totalB = 0;
+                        let totalWeight = 0;
+                        
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                const sampleIdx = ((y + dy) * width + (x + dx)) * 4;
+                                
+                                // Spatial weight
+                                const spatialWeight = gaussianKernel[dy + radius][dx + radius];
+                                
+                                // Color weight
+                                const colorDiff = Math.sqrt(
+                                    Math.pow(centerR - data[sampleIdx], 2) +
+                                    Math.pow(centerG - data[sampleIdx + 1], 2) +
+                                    Math.pow(centerB - data[sampleIdx + 2], 2)
+                                );
+                                const colorWeight = Math.exp(-(colorDiff * colorDiff) / (2 * sigmaColor * sigmaColor));
+                                
+                                const weight = spatialWeight * colorWeight;
+                                
+                                totalR += data[sampleIdx] * weight;
+                                totalG += data[sampleIdx + 1] * weight;
+                                totalB += data[sampleIdx + 2] * weight;
+                                totalWeight += weight;
+                            }
+                        }
+                        
+                        if (totalWeight > 0) {
+                            // Adaptive blending based on skin confidence
+                            const skinConfidence = maskValue / 255;
+                            const blendFactor = skinConfidence * intensity * 0.6;
+                            
+                            result[centerIdx] = centerR * (1 - blendFactor) + (totalR / totalWeight) * blendFactor;
+                            result[centerIdx + 1] = centerG * (1 - blendFactor) + (totalG / totalWeight) * blendFactor;
+                            result[centerIdx + 2] = centerB * (1 - blendFactor) + (totalB / totalWeight) * blendFactor;
+                        }
+                    }
+                }
+            }
+            
+            return result;
+        }
+
+        // Detail enhancement to maintain natural texture
+        function enhanceDetails(original, smoothed, skinMask, width, height, intensity) {
+            const result = new Uint8ClampedArray(smoothed);
+            const enhancementStrength = intensity * 0.3;
+            
+            for (let i = 0; i < original.length; i += 4) {
+                const pixelIndex = i / 4;
+                const maskValue = skinMask[pixelIndex];
+                
+                if (maskValue > 128) {
+                    // Calculate detail difference
+                    const detailR = original[i] - smoothed[i];
+                    const detailG = original[i + 1] - smoothed[i + 1];
+                    const detailB = original[i + 2] - smoothed[i + 2];
+                    
+                    // Apply subtle detail enhancement
+                    result[i] = smoothed[i] + detailR * enhancementStrength;
+                    result[i + 1] = smoothed[i + 1] + detailG * enhancementStrength;
+                    result[i + 2] = smoothed[i + 2] + detailB * enhancementStrength;
+                    
+                    // Clamp values
+                    result[i] = Math.max(0, Math.min(255, result[i]));
+                    result[i + 1] = Math.max(0, Math.min(255, result[i + 1]));
+                    result[i + 2] = Math.max(0, Math.min(255, result[i + 2]));
+                }
+            }
+            
+            return result;
+        }
+
+        // Advanced Face Slimming with Landmark Detection Simulation
+        function advancedFaceSlimming(imageData, intensity) {
+            if (intensity === 0) return imageData;
+            
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const result = new Uint8ClampedArray(data);
+            
+            // Simulate face detection (in real app, use MediaPipe or similar)
+            const faceRegion = detectFaceRegion(data, width, height);
+            
+            if (!faceRegion.detected) return imageData;
+            
+            // Apply multi-zone face slimming
+            const slimmingMap = createSlimmingMap(faceRegion, width, height, intensity);
+            
+            // Apply displacement with smooth interpolation
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    const displacement = slimmingMap[y * width + x];
+                    
+                    if (displacement.magnitude > 0.001) {
+                        const sourceX = x + displacement.x;
+                        const sourceY = y + displacement.y;
+                        
+                        if (sourceX >= 0 && sourceX < width - 1 && sourceY >= 0 && sourceY < height - 1) {
+                            const interpolated = bicubicInterpolation(data, width, height, sourceX, sourceY);
+                            
+                            // Blend with original based on displacement confidence
+                            const blendFactor = Math.min(1, displacement.magnitude * 2);
+                            result[idx] = data[idx] * (1 - blendFactor) + interpolated.r * blendFactor;
+                            result[idx + 1] = data[idx + 1] * (1 - blendFactor) + interpolated.g * blendFactor;
+                            result[idx + 2] = data[idx + 2] * (1 - blendFactor) + interpolated.b * blendFactor;
+                        }
+                    }
+                }
+            }
+            
+            return new ImageData(result, width, height);
+        }
+
+        // Face region detection (simplified)
+        function detectFaceRegion(data, width, height) {
+            // In a real application, use face detection library
+            // Here we simulate based on image center and skin detection
+            let skinPixelCount = 0;
+            let skinCenterX = 0, skinCenterY = 0;
+            
+            // Sample for skin pixels in central region
+            const sampleRegion = {
+                x: Math.floor(width * 0.2),
+                y: Math.floor(height * 0.2),
+                w: Math.floor(width * 0.6),
+                h: Math.floor(height * 0.6)
+            };
+            
+            for (let y = sampleRegion.y; y < sampleRegion.y + sampleRegion.h; y++) {
+                for (let x = sampleRegion.x; x < sampleRegion.x + sampleRegion.w; x++) {
+                    const idx = (y * width + x) * 4;
+                    if (advancedSkinDetection(data[idx], data[idx + 1], data[idx + 2])) {
+                        skinCenterX += x;
+                        skinCenterY += y;
+                        skinPixelCount++;
+                    }
+                }
+            }
+            
+            if (skinPixelCount > (sampleRegion.w * sampleRegion.h * 0.1)) {
+                return {
+                    detected: true,
+                    centerX: skinCenterX / skinPixelCount,
+                    centerY: skinCenterY / skinPixelCount,
+                    width: Math.floor(width * 0.5),
+                    height: Math.floor(height * 0.6)
+                };
+            }
+            
+            return { detected: false };
+        }
+
+        // Create slimming displacement map
+        function createSlimmingMap(faceRegion, width, height, intensity) {
+            const map = new Array(width * height);
+            const slimStrength = intensity * 0.12; // More subtle
+            
+            const centerX = faceRegion.centerX;
+            const centerY = faceRegion.centerY;
+            const faceWidth = faceRegion.width;
+            const faceHeight = faceRegion.height;
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    
+                    // Calculate relative position to face center
+                    const relX = (x - centerX) / (faceWidth * 0.5);
+                    const relY = (y - centerY) / (faceHeight * 0.5);
+                    
+                    // Distance from face center
+                    const distance = Math.sqrt(relX * relX + relY * relY);
+                    
+                    let displacement = { x: 0, y: 0, magnitude: 0 };
+                    
+                    // Apply slimming in cheek areas
+                    if (distance > 0.4 && distance < 1.2 && Math.abs(relY) < 0.8) {
+                        // Calculate slimming vector
+                        const cheekFactor = Math.sin((distance - 0.4) / 0.8 * Math.PI);
+                        const verticalWeight = Math.cos(relY * Math.PI / 1.6);
+                        
+                        // Horizontal slimming (toward center)
+                        const slimAmount = slimStrength * cheekFactor * verticalWeight;
+                        
+                        if (Math.abs(relX) > 0.3) {
+                            const direction = relX > 0 ? -1 : 1;
+                            displacement.x = direction * slimAmount * Math.abs(relX);
+                            displacement.y = 0;
+                            displacement.magnitude = Math.abs(displacement.x);
+                        }
+                    }
+                    
+                    map[idx] = displacement;
+                }
+            }
+            
+            // Smooth the displacement map to avoid artifacts
+            return smoothDisplacementMap(map, width, height);
+        }
+
+        // Smooth displacement map to prevent artifacts
+        function smoothDisplacementMap(map, width, height) {
+            const smoothed = new Array(width * height);
+            const kernel = [
+                [0.0625, 0.125, 0.0625],
+                [0.125, 0.25, 0.125],
+                [0.0625, 0.125, 0.0625]
+            ];
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = y * width + x;
+                    let smoothX = 0, smoothY = 0, smoothMag = 0;
+                    
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const sampleIdx = (y + ky) * width + (x + kx);
+                            const weight = kernel[ky + 1][kx + 1];
+                            
+                            smoothX += map[sampleIdx].x * weight;
+                            smoothY += map[sampleIdx].y * weight;
+                            smoothMag += map[sampleIdx].magnitude * weight;
+                        }
+                    }
+                    
+                    smoothed[idx] = { x: smoothX, y: smoothY, magnitude: smoothMag };
+                }
+            }
+            
+            // Copy edges
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    if (x === 0 || x === width - 1 || y === 0 || y === height - 1) {
+                        smoothed[idx] = map[idx];
+                    }
+                }
+            }
+            
+            return smoothed;
+        }
+
+        // High-quality bicubic interpolation
+        function bicubicInterpolation(data, width, height, x, y) {
+            const x0 = Math.floor(x);
+            const y0 = Math.floor(y);
+            const fx = x - x0;
+            const fy = y - y0;
+            
+            // Sample 4x4 neighborhood
+            const samples = [];
+            for (let dy = -1; dy <= 2; dy++) {
+                samples[dy + 1] = [];
+                for (let dx = -1; dx <= 2; dx++) {
+                    const sampleX = Math.max(0, Math.min(width - 1, x0 + dx));
+                    const sampleY = Math.max(0, Math.min(height - 1, y0 + dy));
+                    const idx = (sampleY * width + sampleX) * 4;
+                    
+                    samples[dy + 1][dx + 1] = {
+                        r: data[idx] || 0,
+                        g: data[idx + 1] || 0,
+                        b: data[idx + 2] || 0
+                    };
+                }
+            }
+            
+            // Bicubic interpolation function
+            function cubic(p0, p1, p2, p3, t) {
+                const a = -0.5 * p0 + 1.5 * p1 - 1.5 * p2 + 0.5 * p3;
+                const b = p0 - 2.5 * p1 + 2 * p2 - 0.5 * p3;
+                const c = -0.5 * p0 + 0.5 * p2;
+                const d = p1;
+                return a * t * t * t + b * t * t + c * t + d;
+            }
+            
+            // Interpolate in x direction
+            const xInterp = [];
+            for (let i = 0; i < 4; i++) {
+                xInterp[i] = {
+                    r: cubic(samples[i][0].r, samples[i][1].r, samples[i][2].r, samples[i][3].r, fx),
+                    g: cubic(samples[i][0].g, samples[i][1].g, samples[i][2].g, samples[i][3].g, fx),
+                    b: cubic(samples[i][0].b, samples[i][1].b, samples[i][2].b, samples[i][3].b, fx)
+                };
+            }
+            
+            // Interpolate in y direction
+            return {
+                r: Math.max(0, Math.min(255, cubic(xInterp[0].r, xInterp[1].r, xInterp[2].r, xInterp[3].r, fy))),
+                g: Math.max(0, Math.min(255, cubic(xInterp[0].g, xInterp[1].g, xInterp[2].g, xInterp[3].g, fy))),
+                b: Math.max(0, Math.min(255, cubic(xInterp[0].b, xInterp[1].b, xInterp[2].b, xInterp[3].b, fy)))
+            };
+        }
+
+        // Main beauty effects processor with performance optimization
+        function applyAdvancedBeautyEffects(imageData) {
+            let processedData = imageData;
+            
+            // Apply effects in optimal order
+            if (beautyEffects.skinSmoothing > 0) {
+                processedData = professionalSkinSmoothing(processedData, beautyEffects.skinSmoothing);
+            }
+            
+            if (beautyEffects.faceSlimming > 0) {
+                processedData = advancedFaceSlimming(processedData, beautyEffects.faceSlimming);
+            }
+            
+            return processedData;
+        }
+
+        // Enhanced Control Event Listeners
+        document.getElementById('skinOriginal').addEventListener('click', () => {
+            setActiveControl('skin', 'Original');
+            updateBeautyEffects('skin', 0);
+        });
+        
+        document.getElementById('skinMedium').addEventListener('click', () => {
+            setActiveControl('skin', 'Medium');
+            updateBeautyEffects('skin', 1);
+        });
+        
+        document.getElementById('skinHigh').addEventListener('click', () => {
+            setActiveControl('skin', 'High');
+            updateBeautyEffects('skin', 2);
+        });
+
+        document.getElementById('faceOriginal').addEventListener('click', () => {
+            setActiveControl('face', 'Original');
+            updateBeautyEffects('face', 0);
+        });
+        
+        document.getElementById('faceMedium').addEventListener('click', () => {
+            setActiveControl('face', 'Medium');
+            updateBeautyEffects('face', 1);
+        });
+        
+        document.getElementById('faceHigh').addEventListener('click', () => {
+            setActiveControl('face', 'High');
+            updateBeautyEffects('face', 2);
+        });
+
+        // Exit button
+        document.getElementById('exitButton').addEventListener('click', () => {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            alert('Thoát ứng dụng');
+        });
+
+        // Optimized Camera initialization
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280, max: 1920 },
+                        height: { ideal: 720, max: 1080 },
+                        facingMode: 'user',
+                        frameRate: { ideal: 30, max: 60 }
+                    }
+                };
+
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                originalVideo.srcObject = videoStream;
+                
+                await new Promise((resolve) => {
+                    originalVideo.addEventListener('loadedmetadata', resolve, { once: true });
+                });
+
+                const actualWidth = originalVideo.videoWidth;
+                const actualHeight = originalVideo.videoHeight;
+                
+                // Set canvas dimensions
+                filteredCanvas.width = actualWidth;
+                filteredCanvas.height = actualHeight;
+                
+                // Initialize performance optimization canvases
+                offscreenCanvas = new OffscreenCanvas(actualWidth, actualHeight);
+                offscreenCtx = offscreenCanvas.getContext('2d', { 
+                    willReadFrequently: true,
+                    alpha: false 
+                });
+                
+                skinMaskCanvas = new OffscreenCanvas(actualWidth, actualHeight);
+                skinMaskCtx = skinMaskCanvas.getContext('2d', { 
+                    willReadFrequently: true,
+                    alpha: false 
+                });
+                
+                loadingOverlay.classList.add('hidden');
+                startProcessing();
+
+            } catch (error) {
+                console.error('Camera access error:', error);
+                loadingOverlay.innerHTML = '<div>❌ Không thể truy cập camera</div>';
+                setTimeout(() => {
+                    loadingOverlay.classList.add('hidden');
+                }, 2000);
+            }
+        }
+
+        // Highly optimized frame processing with adaptive quality
+        function startProcessing() {
+            const ctx = filteredCanvas.getContext('2d', { alpha: false });
+            let frameSkip = 0;
+            const targetFPS = 30;
+            
+            function processFrame(currentTime) {
+                if (!videoStream || originalVideo.readyState < 2) {
+                    animationId = requestAnimationFrame(processFrame);
+                    return;
+                }
+
+                // FPS calculation and adaptive quality
+                frameCount++;
+                if (currentTime - lastTime >= 1000) {
+                    fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                    frameCount = 0;
+                    lastTime = currentTime;
+                    fpsCounter.textContent = `FPS: ${fps}`;
+                    
+                    // Adaptive frame skipping for performance
+                    if (fps < targetFPS - 5) {
+                        frameSkip = Math.min(2, frameSkip + 1);
+                    } else if (fps > targetFPS + 5) {
+                        frameSkip = Math.max(0, frameSkip - 1);
+                    }
+                }
+
+                // Skip frames if performance is low
+                if (frameSkip > 0 && frameCount % (frameSkip + 1) !== 0) {
+                    animationId = requestAnimationFrame(processFrame);
+                    return;
+                }
+
+                // Skip frame if still processing previous one
+                if (isProcessing) {
+                    animationId = requestAnimationFrame(processFrame);
+                    return;
+                }
+                
+                isProcessing = true;
+                
+                try {
+                    // Clear and draw flipped video
+                    ctx.save();
+                    ctx.scale(-1, 1);
+                    ctx.translate(-filteredCanvas.width, 0);
+                    ctx.drawImage(originalVideo, 0, 0, filteredCanvas.width, filteredCanvas.height);
+                    ctx.restore();
+                    
+                    // Apply beauty effects if any are enabled
+                    if (beautyEffects.skinSmoothing > 0 || beautyEffects.faceSlimming > 0) {
+                        const imageData = ctx.getImageData(0, 0, filteredCanvas.width, filteredCanvas.height);
+                        const processedImageData = applyAdvancedBeautyEffects(imageData);
+                        ctx.putImageData(processedImageData, 0, 0);
+                    }
+                    
+                } catch (error) {
+                    console.error('Processing error:', error);
+                } finally {
+                    isProcessing = false;
+                }
+                
+                animationId = requestAnimationFrame(processFrame);
+            }
+            
+            animationId = requestAnimationFrame(processFrame);
+        }
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', () => {
+            startCamera();
+        });
+
+        // Handle page visibility for performance
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+            } else if (videoStream) {
+                startProcessing();
+            }
+        });
+    </script>
+</body>
+</html>

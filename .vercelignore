@@ -1,0 +1,33 @@
+# Development files
+*.log
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Node modules (if any)
+node_modules/
+
+# Large output folders (optional - you might want to keep these)
+# vintage_output/
+# output/
+
+# Backup files
+*.bak
+*.backup
+
+# Test files
+test.html

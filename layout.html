@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout - Photobooth Professional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #fce4ec 25%, #f8bbd9 50%, #f48fb1 75%, #e91e63 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            padding: 15px;
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .photo-gallery {
+            width: 320px;
+            background: linear-gradient(145deg, #fce4ec 0%, #f8bbd9 50%, #f48fb1 100%);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 15px 40px rgba(233, 30, 99, 0.15);
+            border: 3px solid rgba(233, 30, 99, 0.2);
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .gallery-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #e91e63;
+            text-shadow: 0 2px 4px rgba(233, 30, 99, 0.2);
+        }
+
+        .photo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .photo-item {
+            aspect-ratio: 4/3;
+            background: linear-gradient(145deg, #ffffff 0%, #fce4ec 100%);
+            border: 3px solid rgba(233, 30, 99, 0.3);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e91e63;
+            font-size: 0.9em;
+            font-weight: 600;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.1);
+            user-select: none;
+        }
+
+        .photo-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(233, 30, 99, 0.25);
+        }
+
+        .photo-item:active {
+            cursor: grabbing;
+        }
+
+        .photo-item.assigned {
+            border-color: #28a745;
+            opacity: 0.7;
+        }
+
+        .photo-item.assigned::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .photo-item .photo-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-size: 0.7em;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        .canvas-frame {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(233, 30, 99, 0.2);
+            border: 3px solid #f8bbd9;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        #mainCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: default;
+            background: #fff;
+        }
+
+        #mainCanvas.interactive {
+            cursor: grab;
+        }
+
+        #mainCanvas.interactive:active {
+            cursor: grabbing;
+        }
+
+        .canvas-frame.drag-over {
+            border-color: #e91e63;
+            box-shadow: 0 0 20px rgba(233, 30, 99, 0.5);
+        }
+
+        .slot-highlight {
+            position: absolute;
+            border: 4px dashed #e91e63;
+            background: rgba(233, 30, 99, 0.1);
+            pointer-events: none;
+            z-index: 10;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.15) 0%, rgba(252, 228, 236, 0.25) 100%);
+            border-radius: 20px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(233, 30, 99, 0.2);
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.1);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 3px 10px rgba(233, 30, 99, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-width: 80px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #e91e63 0%, #f48fb1 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 5px 15px rgba(233, 30, 99, 0.3);
+            background: linear-gradient(145deg, #f48fb1 0%, #f8bbd9 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, #f48fb1 0%, #f8bbd9 100%);
+            color: #e91e63;
+            border: 2px solid rgba(233, 30, 99, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 5px 15px rgba(244, 143, 177, 0.3);
+            background: linear-gradient(145deg, #f8bbd9 0%, #fce4ec 100%);
+            border-color: #e91e63;
+        }
+
+
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(233, 30, 99, 0.1);
+            border-radius: 15px;
+            color: #e91e63;
+            font-weight: 600;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .image-controls {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: linear-gradient(145deg, #ffffff 0%, #fce4ec 100%);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 15px 40px rgba(233, 30, 99, 0.2);
+            border: 2px solid rgba(233, 30, 99, 0.3);
+            z-index: 100;
+            min-width: 200px;
+        }
+
+        .image-controls h4 {
+            color: #e91e63;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            color: #e91e63;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .zoom-value {
+            color: #e91e63;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .position-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #f48fb1 0%, #f8bbd9 100%);
+            color: #e91e63;
+            font-size: 0.8em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(145deg, #e91e63 0%, #f48fb1 100%);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .fit-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .selected-image {
+            border: 4px solid #4CAF50 !important;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5) !important;
+            animation: selectedPulse 2s infinite;
+        }
+
+        @keyframes selectedPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(76, 175, 80, 0.8); }
+        }
+
+        .manipulation-guide {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+            border: 2px dashed #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .zoom-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            pointer-events: none;
+        }
+
+        .help-instructions {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(145deg, #fff3e0 0%, #ffecb3 100%);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
+            max-width: 600px;
+        }
+
+        .help-instructions h4 {
+            color: #f57c00;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .help-instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .help-instructions li {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .help-instructions strong {
+            color: #e65100;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: #fff;
+            font-size: 1.2em;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+
+        .error-message {
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px;
+        }
+
+        .control-buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-load {
+            background: linear-gradient(145deg, #4CAF50 0%, #66BB6A 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-load:hover {
+            background: linear-gradient(145deg, #388E3C 0%, #4CAF50 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-reset-all {
+            background: linear-gradient(145deg, #FF5722 0%, #FF7043 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
+        }
+
+        .btn-reset-all:hover {
+            background: linear-gradient(145deg, #D84315 0%, #FF5722 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
+        }
+
+        #loadImageInput {
+            display: none;
+        }
+
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .photo-gallery {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .canvas-frame {
+                max-width: 350px;
+                height: 525px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .canvas-frame {
+                max-width: 300px;
+                height: 450px;
+            }
+
+            .control-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div>Đang tải layout...</div>
+        <div id="loadingProgress" style="margin-top: 10px; font-size: 0.9em;"></div>
+    </div>
+
+    <div class="main-container">
+        <div class="photo-gallery">
+            <div class="gallery-title">Photos</div>
+            <div class="photo-grid" id="photoGrid"></div>
+        </div>
+
+        <div class="canvas-container">
+            <div class="canvas-frame">
+                <canvas id="mainCanvas" width="800" height="1200"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" id="nextBtn" style="display: none;">✨ Next</button>
+                <button class="btn btn-secondary" id="undoBtn" disabled>↶ Undo</button>
+                <button class="btn btn-secondary" id="resetBtn">🔄 Làm lại</button>
+                <button class="btn btn-secondary" id="backBtn">🏠 Quay lại</button>
+                <button class="btn btn-primary" id="loadImageBtn">📁 Tải ảnh</button>
+            </div>
+
+
+            <input type="file" id="loadImageInput" multiple accept="image/*">
+
+            <div class="status" id="status">Kéo thả ảnh vào các slot để tạo layout</div>
+
+            <!-- Help Instructions -->
+            <div class="help-instructions" id="helpInstructions" style="display: none;">
+                <h4>🎯 Hướng dẫn sử dụng Layout Manager:</h4>
+                <ul>
+                    <li><strong>📁 Load Images:</strong> Tải ảnh từ máy tính của bạn vào gallery</li>
+                    <li><strong>🎯 Chọn ảnh:</strong> Click vào ảnh trong slot để chọn và chỉnh sửa</li>
+                    <li><strong>🔄 Di chuyển:</strong> Kéo thả ảnh để điều chỉnh vị trí trong slot</li>
+                    <li><strong>🔍 Zoom:</strong> Cuộn chuột hoặc dùng slider để phong to/thu nhỏ</li>
+                    <li><strong>📱 Touch:</strong> Dùng 2 ngón tay pinch-zoom trên màn hình cảm ứng</li>
+                    <li><strong>⌨️ Phím tắt:</strong> ↑↓←→ di chuyển, +/- zoom, C center, 0 reset</li>
+                    <li><strong>📐 Fit:</strong> Dùng các nút Fit Width/Height/Fill để tự động điều chỉnh</li>
+                    <li><strong>🗑️ Reset All:</strong> Xóa tất cả ảnh trong các slots</li>
+                    <li><strong>🏠 Home:</strong> Trở về trang chủ</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Controls Panel -->
+    <div class="image-controls" id="imageControls" style="display: none;">
+        <h4>🎯 Điều chỉnh ảnh</h4>
+
+        <div class="control-group">
+            <label>🔍 Zoom</label>
+            <input type="range" id="zoomSlider" min="50" max="300" value="100" step="5">
+            <div class="zoom-value" id="zoomValue">100%</div>
+        </div>
+
+        <div class="control-group">
+            <label>📍 Vị trí</label>
+            <div class="position-controls">
+                <button class="control-btn" id="centerBtn">Center</button>
+                <button class="control-btn" id="resetBtn">Reset</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>📐 Fit Mode</label>
+            <div class="fit-controls">
+                <button class="control-btn" id="fitWidthBtn">Fit Width</button>
+                <button class="control-btn" id="fitHeightBtn">Fit Height</button>
+                <button class="control-btn" id="fillSlotBtn">Fill Slot</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <button class="control-btn" id="closeControlsBtn" style="background: linear-gradient(145deg, #dc3545 0%, #e57373 100%); color: white;">✕ Đóng</button>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        class LayoutManager {
+        constructor() {
+            this.photos = [];
+                this.slotPhotos = {};
+                this.selectedSlot = null;
+                this.selectedImageSlot = null;
+                this.canvas = null;
+                this.ctx = null;
+                this.frameImage = null;
+                this.history = [];
+                this.historyIndex = -1;
+
+                // Enhanced image manipulation properties
+                this.imageOffsets = {}; // {slotIndex: {x: 0, y: 0}}
+                this.imageZoomLevels = {}; // {slotIndex: 1.0}
+                this.isDragging = false;
+                this.dragStartPos = null;
+                this.dragSlotIndex = null;
+                this.lastDragPos = null;
+
+                // Touch support
+                this.touchStartDistance = 0;
+                this.touchStartZoom = 1;
+                this.touchSlotIndex = null;
+
+                this.layoutConfig = {
+                    canvas: {w: 800, h: 1200},
+                    slots: [
+                        {x: 0, y: 25, w: 400, h: 544},
+                        {x: 400, y: 25, w: 400, h: 544},
+                        {x: 0, y: 569, w: 400, h: 544},
+                        {x: 400, y: 569, w: 400, h: 544}
+                    ]
+                };
+
+                this.init();
+            }
+
+            async init() {
+                try {
+            this.initializeElements();
+                    await this.loadFrame();
+                    await this.loadPhotos();
+            this.setupEventListeners();
+                    this.createEmptyCanvas();
+                    this.hideLoading();
+                } catch (error) {
+                    this.showError('Lỗi khởi tạo: ' + error.message);
+                }
+        }
+
+            initializeElements() {
+                this.photoGrid = document.getElementById('photoGrid');
+                this.canvas = document.getElementById('mainCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.canvasFrame = document.querySelector('.canvas-frame');
+                this.generateBtn = document.getElementById('generateBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.undoBtn = document.getElementById('undoBtn');
+                this.debugBtn = document.getElementById('debugBtn');
+                this.backBtn = document.getElementById('backBtn');
+                this.status = document.getElementById('status');
+                this.loadingOverlay = document.getElementById('loadingOverlay');
+                
+                this.ctx.imageSmoothingEnabled = true;
+                this.ctx.imageSmoothingQuality = 'high';
+            }
+
+            async loadFrame() {
+                return new Promise((resolve) => {
+                    this.frameImage = new Image();
+                    this.frameImage.onload = () => {
+                        console.log('Frame loaded successfully');
+                        resolve();
+                    };
+                    this.frameImage.onerror = () => {
+                        console.warn('Frame not found, continuing without frame');
+                        resolve();
+                    };
+                    this.frameImage.src = './frames/1.png';
+                    setTimeout(() => resolve(), 2000);
+                });
+            }
+
+            async loadPhotos() {
+                try {
+                    const savedPhotos = sessionStorage.getItem('capturedPhotos');
+                    console.log('Saved photos from sessionStorage:', savedPhotos);
+
+                    if (!savedPhotos) {
+                        console.warn('No saved photos, checking for demo photos');
+                        await this.loadDemoPhotos();
+                        return;
+                    }
+
+                    this.photos = JSON.parse(savedPhotos);
+                    console.log('Parsed photos:', this.photos);
+
+                    if (!Array.isArray(this.photos) || this.photos.length === 0) {
+                        throw new Error('Dữ liệu ảnh không hợp lệ');
+                    }
+
+                    await this.validatePhotos();
+                    this.renderPhotos();
+
+                } catch (error) {
+                    console.warn('Load photos error:', error);
+                    await this.loadDemoPhotos();
+                }
+            }
+
+            async loadDemoPhotos() {
+                // Try to load some demo images if available, otherwise show empty state
+                const demoImages = [];
+
+                // Check if there are any existing photos in the galleries folder
+                for (let i = 1; i <= 8; i++) {
+                    try {
+                        const response = await fetch(`./galleries/photo_${i}.jpg`);
+                        if (response.ok) {
+                            demoImages.push({
+                                id: i,
+                                url: `./galleries/photo_${i}.jpg`,
+                                name: `Demo Photo ${i}`
+                            });
+                        }
+                    } catch (e) {
+                        // Image doesn't exist, skip
+                    }
+                }
+
+                if (demoImages.length > 0) {
+                    this.photos = demoImages;
+                } else {
+                    // Create placeholder with instructions
+                    this.photos = [];
+                }
+
+                this.renderPhotos();
+            }
+
+            async validatePhotos() {
+                console.log('Validating photos:', this.photos);
+                const validPhotos = [];
+                for (const photo of this.photos) {
+                    try {
+                        console.log('Validating photo:', photo);
+                        await this.preloadImage(photo.url);
+                        validPhotos.push(photo);
+                        console.log('Photo validated successfully:', photo.id);
+                    } catch (e) {
+                        console.warn(`Invalid photo ${photo.id}:`, e);
+                    }
+                }
+                
+                console.log('Valid photos after validation:', validPhotos);
+                
+                if (validPhotos.length < 4) {
+                    throw new Error(`Cần ít nhất 4 ảnh hợp lệ (hiện có ${validPhotos.length})`);
+                }
+                
+                this.photos = validPhotos;
+            }
+
+            preloadImage(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(new Error('Load failed'));
+                    img.src = url;
+                    setTimeout(() => reject(new Error('Timeout')), 5000);
+                });
+            }
+
+
+            // renderPhotos function moved to enhanced version below
+
+            createEmptyCanvas() {
+                this.ctx.fillStyle = 'white';
+                this.ctx.fillRect(0, 0, this.layoutConfig.canvas.w, this.layoutConfig.canvas.h);
+                
+                this.layoutConfig.slots.forEach((slot, index) => {
+                    this.drawPlaceholder(slot, index);
+                });
+                
+                if (this.frameImage && this.frameImage.complete) {
+                    this.ctx.drawImage(this.frameImage, 0, 0, 
+                        this.layoutConfig.canvas.w, this.layoutConfig.canvas.h);
+                }
+            }
+
+            drawPlaceholder(slot, index) {
+                this.ctx.fillStyle = '#f8f8f8';
+                this.ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+                
+                this.ctx.strokeStyle = '#e91e63';
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+                
+                this.ctx.strokeStyle = '#f48fb1';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([10, 5]);
+                this.ctx.strokeRect(slot.x + 5, slot.y + 5, slot.w - 10, slot.h - 10);
+                this.ctx.setLineDash([]);
+                
+                this.ctx.fillStyle = '#e91e63';
+                this.ctx.font = 'bold 28px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(
+                    `Slot ${index + 1}`, 
+                    slot.x + slot.w / 2, 
+                    slot.y + slot.h / 2 - 20
+                );
+                
+                this.ctx.fillStyle = '#999';
+                this.ctx.font = '16px Arial';
+                this.ctx.fillText(
+                    'Thả ảnh vào đây', 
+                    slot.x + slot.w / 2, 
+                    slot.y + slot.h / 2 + 20
+                );
+            }
+
+            setupEventListeners() {
+                // Original drag and drop functionality
+                document.addEventListener('dragstart', (e) => {
+                    if (e.target.classList.contains('photo-item')) {
+                        e.dataTransfer.setData('text/plain', e.target.dataset.photoId);
+                        e.target.style.opacity = '0.5';
+                    }
+                });
+
+                document.addEventListener('dragend', (e) => {
+                    if (e.target.classList.contains('photo-item')) {
+                        e.target.style.opacity = '1';
+                    }
+                });
+
+                this.canvasFrame.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.canvasFrame.classList.add('drag-over');
+                });
+
+                this.canvasFrame.addEventListener('dragleave', () => {
+                    this.canvasFrame.classList.remove('drag-over');
+                });
+
+                this.canvasFrame.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.canvasFrame.classList.remove('drag-over');
+
+                    const photoId = e.dataTransfer.getData('text/plain');
+                    const coords = this.getCanvasCoordinates(e);
+
+                    const slotIndex = this.getSlotAtPosition(coords.x, coords.y);
+                    if (slotIndex !== null) {
+                        this.assignPhotoToSlot(slotIndex, photoId);
+                    }
+                });
+
+                // Enhanced click handling for image selection
+                this.canvas.addEventListener('click', (e) => {
+                    const coords = this.getCanvasCoordinates(e);
+                    const slotIndex = this.getSlotAtPosition(coords.x, coords.y);
+
+                    if (slotIndex !== null && this.slotPhotos[slotIndex]) {
+                        this.selectImageInSlot(slotIndex);
+                    } else {
+                        this.deselectImage();
+                    }
+                });
+
+                // Mouse events for image positioning
+                this.setupMouseEvents();
+
+                // Wheel event for zoom
+                this.setupWheelZoom();
+
+                // Touch events for mobile
+                this.setupTouchEvents();
+
+                // Control panel events
+                this.setupControlPanelEvents();
+
+                // Keyboard shortcuts
+                this.setupKeyboardShortcuts();
+
+                // Button events
+                // Generate button removed
+                this.nextBtn = document.getElementById('nextBtn');
+                this.nextBtn.addEventListener('click', () => this.goToFrameSelection());
+                this.resetBtn.addEventListener('click', () => this.resetLayout());
+                this.undoBtn.addEventListener('click', () => this.undo());
+                this.debugBtn.addEventListener('click', () => this.debugSlots());
+                
+                // Save layout button removed
+                this.backBtn.addEventListener('click', () => window.location.href = 'home.html');
+                
+                // Load image button
+                this.loadImageBtn.addEventListener('click', () => {
+                    document.getElementById('loadImageInput').click();
+                });
+
+                // Help button
+                const helpBtn = document.getElementById('helpBtn');
+                const helpInstructions = document.getElementById('helpInstructions');
+                helpBtn.addEventListener('click', () => {
+                    const isVisible = helpInstructions.style.display !== 'none';
+                    helpInstructions.style.display = isVisible ? 'none' : 'block';
+                    helpBtn.textContent = isVisible ? '❓ Help' : '❌ Hide Help';
+                });
+
+                // Load images button
+                const loadImageBtn = document.getElementById('loadImageBtn');
+                const loadImageInput = document.getElementById('loadImageInput');
+
+                loadImageBtn.addEventListener('click', () => {
+                    loadImageInput.click();
+                });
+
+                loadImageInput.addEventListener('change', (e) => {
+                    this.handleImageLoad(e);
+                });
+
+                // Reset all button
+                const resetAllBtn = document.getElementById('resetAllBtn');
+                resetAllBtn.addEventListener('click', () => {
+                    this.resetAllSlots();
+                });
+            }
+
+            setupMouseEvents() {
+                this.canvas.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0) return; // Only left click
+
+                    const coords = this.getCanvasCoordinates(e);
+                    const slotIndex = this.getSlotAtPosition(coords.x, coords.y);
+
+                    if (slotIndex !== null && this.slotPhotos[slotIndex] && this.selectedImageSlot === slotIndex) {
+                        this.isDragging = true;
+                        this.dragSlotIndex = slotIndex;
+                        this.dragStartPos = coords;
+                        this.lastDragPos = coords;
+                        this.canvas.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    }
+                });
+
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (!this.isDragging) {
+                        // Update cursor based on hover
+                        const coords = this.getCanvasCoordinates(e);
+                        const slotIndex = this.getSlotAtPosition(coords.x, coords.y);
+
+                        if (slotIndex !== null && this.slotPhotos[slotIndex] && this.selectedImageSlot === slotIndex) {
+                            this.canvas.style.cursor = 'grab';
+                        } else {
+                            this.canvas.style.cursor = 'default';
+                        }
+                        return;
+                    }
+
+                    const coords = this.getCanvasCoordinates(e);
+                    const deltaX = coords.x - this.lastDragPos.x;
+                    const deltaY = coords.y - this.lastDragPos.y;
+
+                    this.updateImagePosition(this.dragSlotIndex, deltaX, deltaY);
+                    this.redrawCanvas();
+                    this.lastDragPos = coords;
+                });
+
+                this.canvas.addEventListener('mouseup', () => {
+                    if (this.isDragging) {
+                        this.isDragging = false;
+                        this.dragSlotIndex = null;
+                        this.canvas.style.cursor = 'default';
+                        this.saveState();
+                    }
+                });
+
+                this.canvas.addEventListener('mouseleave', () => {
+                    if (this.isDragging) {
+                        this.isDragging = false;
+                        this.dragSlotIndex = null;
+                        this.canvas.style.cursor = 'default';
+                        this.saveState();
+                    }
+                });
+            }
+
+            setupWheelZoom() {
+                this.canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+
+                    const coords = this.getCanvasCoordinates(e);
+                    const slotIndex = this.getSlotAtPosition(coords.x, coords.y);
+
+                    if (slotIndex !== null && this.slotPhotos[slotIndex] && this.selectedImageSlot === slotIndex) {
+                        const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
+                        this.adjustImageZoom(slotIndex, zoomDelta);
+                        this.redrawCanvas();
+                        this.updateZoomSlider();
+                    }
+                });
+            }
+
+            setupTouchEvents() {
+                this.canvas.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 2) {
+                        e.preventDefault();
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+
+                        this.touchStartDistance = Math.hypot(
+                            touch1.clientX - touch2.clientX,
+                            touch1.clientY - touch2.clientY
+                        );
+
+                        const coords = this.getCanvasCoordinates(touch1);
+                        this.touchSlotIndex = this.getSlotAtPosition(coords.x, coords.y);
+
+                        if (this.touchSlotIndex !== null && this.slotPhotos[this.touchSlotIndex]) {
+                            this.touchStartZoom = this.imageZoomLevels[this.touchSlotIndex] || 1;
+                        }
+                    }
+                });
+
+                this.canvas.addEventListener('touchmove', (e) => {
+                    if (e.touches.length === 2 && this.touchSlotIndex !== null) {
+                        e.preventDefault();
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+
+                        const currentDistance = Math.hypot(
+                            touch1.clientX - touch2.clientX,
+                            touch1.clientY - touch2.clientY
+                        );
+
+                        const scale = currentDistance / this.touchStartDistance;
+                        const newZoom = this.touchStartZoom * scale;
+                        this.setImageZoom(this.touchSlotIndex, newZoom);
+                        this.redrawCanvas();
+                        this.updateZoomSlider();
+                    }
+                });
+
+                this.canvas.addEventListener('touchend', () => {
+                    this.touchSlotIndex = null;
+                    this.saveState();
+                });
+            }
+
+            setupControlPanelEvents() {
+                const zoomSlider = document.getElementById('zoomSlider');
+                const centerBtn = document.getElementById('centerBtn');
+                const resetBtn = document.getElementById('resetBtn');
+                const fitWidthBtn = document.getElementById('fitWidthBtn');
+                const fitHeightBtn = document.getElementById('fitHeightBtn');
+                const fillSlotBtn = document.getElementById('fillSlotBtn');
+                const closeControlsBtn = document.getElementById('closeControlsBtn');
+
+                zoomSlider.addEventListener('input', (e) => {
+                    if (this.selectedImageSlot !== null) {
+                        const zoomValue = parseFloat(e.target.value) / 100;
+                        this.setImageZoom(this.selectedImageSlot, zoomValue);
+                        this.redrawCanvas();
+                        document.getElementById('zoomValue').textContent = e.target.value + '%';
+                    }
+                });
+
+                centerBtn.addEventListener('click', () => {
+                    if (this.selectedImageSlot !== null) {
+                        this.centerImage(this.selectedImageSlot);
+                    }
+                });
+
+                resetBtn.addEventListener('click', () => {
+                    if (this.selectedImageSlot !== null) {
+                        this.resetImageTransform(this.selectedImageSlot);
+                    }
+                });
+
+                fitWidthBtn.addEventListener('click', () => {
+                    if (this.selectedImageSlot !== null) {
+                        this.fitImageWidth(this.selectedImageSlot);
+                    }
+                });
+
+                fitHeightBtn.addEventListener('click', () => {
+                    if (this.selectedImageSlot !== null) {
+                        this.fitImageHeight(this.selectedImageSlot);
+                    }
+                });
+
+                fillSlotBtn.addEventListener('click', () => {
+                    if (this.selectedImageSlot !== null) {
+                        this.fillSlot(this.selectedImageSlot);
+                    }
+                });
+
+                closeControlsBtn.addEventListener('click', () => {
+                    this.deselectImage();
+                });
+            }
+
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.deselectImage();
+                        return;
+                    }
+
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                        this.undo();
+                        return;
+                    }
+
+                    if (this.selectedImageSlot === null) return;
+
+                    const slotIndex = this.selectedImageSlot;
+                    const step = e.shiftKey ? 10 : 2;
+
+                    switch(e.key) {
+                        case 'ArrowLeft':
+                            this.nudgeImage(slotIndex, -step, 0);
+                            e.preventDefault();
+                            break;
+                        case 'ArrowRight':
+                            this.nudgeImage(slotIndex, step, 0);
+                            e.preventDefault();
+                            break;
+                        case 'ArrowUp':
+                            this.nudgeImage(slotIndex, 0, -step);
+                            e.preventDefault();
+                            break;
+                        case 'ArrowDown':
+                            this.nudgeImage(slotIndex, 0, step);
+                            e.preventDefault();
+                            break;
+                        case '+':
+                        case '=':
+                            this.adjustImageZoom(slotIndex, 0.1);
+                            this.updateZoomSlider();
+                            e.preventDefault();
+                            break;
+                        case '-':
+                            this.adjustImageZoom(slotIndex, -0.1);
+                            this.updateZoomSlider();
+                            e.preventDefault();
+                            break;
+                        case '0':
+                            this.resetImageTransform(slotIndex);
+                            e.preventDefault();
+                            break;
+                        case 'c':
+                            this.centerImage(slotIndex);
+                            e.preventDefault();
+                            break;
+                    }
+
+                    this.redrawCanvas();
+                });
+            }
+
+            getCanvasCoordinates(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / rect.width;
+                const scaleY = this.canvas.height / rect.height;
+                
+                const x = (e.clientX - rect.left) * scaleX;
+                const y = (e.clientY - rect.top) * scaleY;
+                
+                return { x, y };
+            }
+
+            getSlotAtPosition(x, y) {
+                console.log('Checking position:', x, y);
+                console.log('Available slots:', this.layoutConfig.slots);
+                
+                for (let i = 0; i < this.layoutConfig.slots.length; i++) {
+                    const slot = this.layoutConfig.slots[i];
+                    console.log(`Checking slot ${i}:`, slot);
+                    
+                    if (x >= slot.x && x <= slot.x + slot.w && 
+                        y >= slot.y && y <= slot.y + slot.h) {
+                        console.log(`Found slot ${i} at position:`, x, y);
+                        return i;
+                    }
+                }
+                console.log('No slot found at position:', x, y);
+                return null;
+            }
+
+            assignPhotoToSlot(slotIndex, photoId) {
+                console.log('Assigning photo to slot:', slotIndex, photoId);
+                const photo = this.photos.find(p => p.id == photoId);
+                if (!photo) {
+                    console.warn('Photo not found:', photoId);
+                    return;
+                }
+
+                this.saveState();
+                
+                this.slotPhotos[slotIndex] = photo;
+                console.log('SlotPhotos after assignment:', this.slotPhotos);
+                
+                this.selectSlot(slotIndex);
+                this.redrawCanvas();
+                this.updateStatus();
+                
+                const photoEl = document.querySelector(`[data-photo-id="${photoId}"]`);
+                if (photoEl) photoEl.classList.add('assigned');
+            }
+
+            selectSlot(slotIndex) {
+                this.selectedSlot = slotIndex;
+                this.highlightSlot(slotIndex);
+            }
+
+            deselectSlot() {
+                this.selectedSlot = null;
+                this.removeHighlight();
+            }
+
+            // New image selection methods
+            selectImageInSlot(slotIndex) {
+                this.selectedImageSlot = slotIndex;
+                this.selectedSlot = slotIndex;
+                this.highlightSelectedImage(slotIndex);
+                this.showImageControls();
+                this.updateControlsFromImage(slotIndex);
+            }
+
+            deselectImage() {
+                this.selectedImageSlot = null;
+                this.selectedSlot = null;
+                this.removeHighlight();
+                this.hideImageControls();
+            }
+
+            // Image manipulation methods
+            updateImagePosition(slotIndex, deltaX, deltaY) {
+                if (!this.imageOffsets[slotIndex]) {
+                    this.imageOffsets[slotIndex] = {x: 0, y: 0};
+                }
+
+                this.imageOffsets[slotIndex].x += deltaX;
+                this.imageOffsets[slotIndex].y += deltaY;
+
+                // Clamp to reasonable bounds
+                const slot = this.layoutConfig.slots[slotIndex];
+                const maxOffset = Math.max(slot.w, slot.h) * 0.5;
+                this.imageOffsets[slotIndex].x = Math.max(-maxOffset, Math.min(maxOffset, this.imageOffsets[slotIndex].x));
+                this.imageOffsets[slotIndex].y = Math.max(-maxOffset, Math.min(maxOffset, this.imageOffsets[slotIndex].y));
+            }
+
+            adjustImageZoom(slotIndex, delta) {
+                const currentZoom = this.imageZoomLevels[slotIndex] || 1;
+                const newZoom = Math.max(0.2, Math.min(5.0, currentZoom + delta));
+                this.imageZoomLevels[slotIndex] = newZoom;
+            }
+
+            setImageZoom(slotIndex, zoom) {
+                this.imageZoomLevels[slotIndex] = Math.max(0.2, Math.min(5.0, zoom));
+            }
+
+            nudgeImage(slotIndex, deltaX, deltaY) {
+                this.updateImagePosition(slotIndex, deltaX, deltaY);
+                this.saveState();
+            }
+
+
+            // UI control methods
+            highlightSelectedImage(slotIndex) {
+                this.removeHighlight();
+                const slot = this.layoutConfig.slots[slotIndex];
+                const highlight = document.createElement('div');
+                highlight.className = 'selected-image';
+                highlight.id = 'selectedImageHighlight';
+
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = rect.width / this.canvas.width;
+                const scaleY = rect.height / this.canvas.height;
+
+                highlight.style.position = 'absolute';
+                highlight.style.left = (slot.x * scaleX) + 'px';
+                highlight.style.top = (slot.y * scaleY) + 'px';
+                highlight.style.width = (slot.w * scaleX) + 'px';
+                highlight.style.height = (slot.h * scaleY) + 'px';
+                highlight.style.pointerEvents = 'none';
+
+                this.canvasFrame.appendChild(highlight);
+            }
+
+            showImageControls() {
+                document.getElementById('imageControls').style.display = 'block';
+            }
+
+            hideImageControls() {
+                document.getElementById('imageControls').style.display = 'none';
+            }
+
+            updateControlsFromImage(slotIndex) {
+                const zoom = this.imageZoomLevels[slotIndex] || 1;
+                const zoomPercent = Math.round(zoom * 100);
+
+                document.getElementById('zoomSlider').value = zoomPercent;
+                document.getElementById('zoomValue').textContent = zoomPercent + '%';
+            }
+
+            updateZoomSlider() {
+                if (this.selectedImageSlot !== null) {
+                    const zoom = this.imageZoomLevels[this.selectedImageSlot] || 1;
+                    const zoomPercent = Math.round(zoom * 100);
+
+                    document.getElementById('zoomSlider').value = zoomPercent;
+                    document.getElementById('zoomValue').textContent = zoomPercent + '%';
+                }
+            }
+
+            highlightSlot(slotIndex) {
+                this.removeHighlight();
+                const slot = this.layoutConfig.slots[slotIndex];
+                const highlight = document.createElement('div');
+                highlight.className = 'slot-highlight';
+                highlight.id = 'slotHighlight';
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const scaleX = rect.width / this.canvas.width;
+                const scaleY = rect.height / this.canvas.height;
+                
+                highlight.style.position = 'absolute';
+                highlight.style.left = (slot.x * scaleX) + 'px';
+                highlight.style.top = (slot.y * scaleY) + 'px';
+                highlight.style.width = (slot.w * scaleX) + 'px';
+                highlight.style.height = (slot.h * scaleY) + 'px';
+                
+                this.canvasFrame.appendChild(highlight);
+            }
+
+            removeHighlight() {
+                const highlight = document.getElementById('slotHighlight');
+                if (highlight) highlight.remove();
+            }
+
+
+            redrawCanvas() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = 'white';
+                this.ctx.fillRect(0, 0, this.layoutConfig.canvas.w, this.layoutConfig.canvas.h);
+                
+                this.layoutConfig.slots.forEach((slot, index) => {
+                    if (this.slotPhotos[index]) {
+                        this.drawPhotoInSlot(this.slotPhotos[index], slot, index);
+                    } else {
+                        this.drawPlaceholder(slot, index);
+                    }
+                });
+                
+                if (this.frameImage && this.frameImage.complete) {
+                    this.ctx.drawImage(this.frameImage, 0, 0, 
+                        this.layoutConfig.canvas.w, this.layoutConfig.canvas.h);
+                }
+            }
+
+
+            drawPhotoInSlot(photo, slot, slotIndex) {
+                const img = new Image();
+                img.onload = () => {
+                    this.drawImageWithTransforms(img, slot, slotIndex);
+                };
+                img.src = photo.url;
+            }
+
+            drawImageWithTransforms(img, slot, slotIndex) {
+                const ctx = this.ctx;
+
+                // Get transformations
+                const offset = this.imageOffsets[slotIndex] || {x: 0, y: 0};
+                const zoom = this.imageZoomLevels[slotIndex] || 1;
+
+                // Calculate scaling for preview (fill slot by default)
+                const scaleX = slot.w / img.naturalWidth;
+                const scaleY = slot.h / img.naturalHeight;
+
+                // Use maximum scale to fill slot (preview mode)
+                const baseScale = Math.max(scaleX, scaleY);
+                const finalScale = baseScale * zoom;
+
+                const displayWidth = img.naturalWidth * finalScale;
+                const displayHeight = img.naturalHeight * finalScale;
+
+                // Center with offset
+                const centerX = slot.x + slot.w / 2 + offset.x;
+                const centerY = slot.y + slot.h / 2 + offset.y;
+
+                const drawX = centerX - displayWidth / 2;
+                const drawY = centerY - displayHeight / 2;
+
+                // Save context for clipping
+                ctx.save();
+
+                // Clip to slot boundaries
+                ctx.beginPath();
+                ctx.rect(slot.x, slot.y, slot.w, slot.h);
+                ctx.clip();
+
+                // Enable high-quality image smoothing
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
+                // Draw image filling the slot
+                ctx.drawImage(img, drawX, drawY, displayWidth, displayHeight);
+
+                // Draw zoom indicator if selected
+                if (this.selectedImageSlot === slotIndex && zoom !== 1) {
+                    this.drawZoomIndicator(ctx, slot, zoom);
+                }
+
+                ctx.restore();
+            }
+
+            drawZoomIndicator(ctx, slot, zoom) {
+                const zoomPercent = Math.round(zoom * 100);
+
+                ctx.save();
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(slot.x + 10, slot.y + 10, 60, 25);
+
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${zoomPercent}%`, slot.x + 40, slot.y + 27);
+                ctx.restore();
+            }
+
+            // Legacy method for compatibility
+            drawSimpleMode(img, slot) {
+                this.drawImageWithTransforms(img, slot, 0);
+            }
+
+            // Generate photo function removed - no longer needed
+
+            // Save layout function removed
+
+            async drawFinalImage(ctx) {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, this.layoutConfig.canvas.w, this.layoutConfig.canvas.h);
+                
+                const drawPromises = [];
+                
+                this.layoutConfig.slots.forEach((slot, index) => {
+                    if (this.slotPhotos[index]) {
+                        drawPromises.push(this.drawPhotoForExport(
+                            ctx, this.slotPhotos[index], slot, index
+                        ));
+                                    } else {
+                        this.drawPlaceholderOnCtx(ctx, slot, index);
+                    }
+                });
+                
+                await Promise.all(drawPromises);
+                
+                if (this.frameImage && this.frameImage.complete) {
+                    ctx.drawImage(this.frameImage, 0, 0, 
+                        this.layoutConfig.canvas.w, this.layoutConfig.canvas.h);
+                }
+            }
+
+            drawPhotoForExport(ctx, photo, slot, slotIndex) {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.drawImageWithTransformsOnCtx(ctx, img, slot, slotIndex);
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        console.error('Failed to load image for export');
+                        resolve();
+                    };
+                    img.src = photo.url;
+                });
+            }
+
+            drawImageWithTransformsOnCtx(ctx, img, slot, slotIndex) {
+                // Get transformations
+                const offset = this.imageOffsets[slotIndex] || {x: 0, y: 0};
+                const zoom = this.imageZoomLevels[slotIndex] || 1;
+
+                // Calculate scaling for export (same as preview - fill slot)
+                const scaleX = slot.w / img.naturalWidth;
+                const scaleY = slot.h / img.naturalHeight;
+
+                // Use maximum scale to fill slot (same as preview)
+                const baseScale = Math.max(scaleX, scaleY);
+                const finalScale = baseScale * zoom;
+
+                const displayWidth = img.naturalWidth * finalScale;
+                const displayHeight = img.naturalHeight * finalScale;
+
+                // Center with offset
+                const centerX = slot.x + slot.w / 2 + offset.x;
+                const centerY = slot.y + slot.h / 2 + offset.y;
+
+                const drawX = centerX - displayWidth / 2;
+                const drawY = centerY - displayHeight / 2;
+
+                // Save context for clipping
+                ctx.save();
+
+                // Clip to slot boundaries
+                ctx.beginPath();
+                ctx.rect(slot.x, slot.y, slot.w, slot.h);
+                ctx.clip();
+
+                // Enable high-quality image smoothing
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+
+                // Draw image filling the slot (same as preview)
+                ctx.drawImage(img, drawX, drawY, displayWidth, displayHeight);
+
+                ctx.restore();
+            }
+
+            // Legacy method for compatibility
+            drawSimpleModeOnCtx(ctx, img, slot) {
+                this.drawImageWithTransformsOnCtx(ctx, img, slot, 0);
+            }
+
+            drawPlaceholderOnCtx(ctx, slot, index) {
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+                
+                ctx.fillStyle = '#999';
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`Slot ${index + 1}`, 
+                    slot.x + slot.w / 2, slot.y + slot.h / 2);
+            }
+
+            downloadImage(canvas) {
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                    a.download = `photobooth_${timestamp}.jpg`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+                    this.updateStatus(`✓ Đã tải xuống (${sizeMB}MB)`);
+                }, 'image/jpeg', 0.95);
+            }
+
+            saveState() {
+                this.history = this.history.slice(0, this.historyIndex + 1);
+                this.history.push({
+                    slotPhotos: JSON.parse(JSON.stringify(this.slotPhotos)),
+                    imageOffsets: JSON.parse(JSON.stringify(this.imageOffsets)),
+                    imageZoomLevels: JSON.parse(JSON.stringify(this.imageZoomLevels))
+                });
+                this.historyIndex++;
+
+                if (this.history.length > 20) {
+                    this.history.shift();
+                    this.historyIndex--;
+                }
+
+                this.updateUndoButton();
+            }
+
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    const state = this.history[this.historyIndex];
+                    this.slotPhotos = JSON.parse(JSON.stringify(state.slotPhotos));
+                    this.imageOffsets = JSON.parse(JSON.stringify(state.imageOffsets || {}));
+                    this.imageZoomLevels = JSON.parse(JSON.stringify(state.imageZoomLevels || {}));
+
+                    this.deselectImage();
+                    this.redrawCanvas();
+                    this.updateStatus();
+                    this.updateUndoButton();
+
+                    document.querySelectorAll('.photo-item').forEach(el => {
+                        el.classList.remove('assigned');
+                    });
+
+                    Object.values(this.slotPhotos).forEach(photo => {
+                        const photoEl = document.querySelector(`[data-photo-id="${photo.id}"]`);
+                        if (photoEl) photoEl.classList.add('assigned');
+                    });
+                }
+            }
+
+            updateUndoButton() {
+                this.undoBtn.disabled = this.historyIndex <= 0;
+            }
+
+            resetLayout() {
+                if (!confirm('Xóa tất cả và bắt đầu lại?')) return;
+
+                this.slotPhotos = {};
+                this.imageOffsets = {};
+                this.imageZoomLevels = {};
+                this.history = [];
+                this.historyIndex = -1;
+
+                this.deselectImage();
+
+                document.querySelectorAll('.photo-item').forEach(el => {
+                    el.classList.remove('assigned');
+                });
+
+                this.createEmptyCanvas();
+                this.updateStatus();
+                this.updateUndoButton();
+            }
+
+            debugSlots() {
+                console.log('=== SLOT DEBUG ===');
+                console.log('Canvas size:', this.layoutConfig.canvas.w, 'x', this.layoutConfig.canvas.h);
+                console.log('Canvas actual size:', this.canvas.width, 'x', this.canvas.height);
+                console.log('Canvas display size:', this.canvas.offsetWidth, 'x', this.canvas.offsetHeight);
+                console.log('Canvas frame size:', this.canvasFrame.offsetWidth, 'x', this.canvasFrame.offsetHeight);
+                console.log('Slots configuration:');
+                this.layoutConfig.slots.forEach((slot, index) => {
+                    console.log(`Slot ${index + 1}:`, {
+                        x: slot.x,
+                        y: slot.y,
+                        w: slot.w,
+                        h: slot.h,
+                        hasPhoto: !!this.slotPhotos[index]
+                    });
+                });
+                console.log('Slot photos:', this.slotPhotos);
+                console.log('Frame loaded:', this.frameImage ? this.frameImage.complete : false);
+                
+                this.createEmptyCanvas();
+            }
+
+            updateStatus() {
+                const filled = Object.keys(this.slotPhotos).length;
+                console.log('UpdateStatus - filled slots:', filled);
+                console.log('SlotPhotos:', this.slotPhotos);
+                
+                if (filled === 0) {
+                    this.status.textContent = 'Kéo thả ảnh vào các slot để bắt đầu';
+                } else if (filled < 4) {
+                    this.status.textContent = `Đã điền ${filled}/4 slot. Còn ${4 - filled} slot nữa.`;
+                } else {
+                    this.status.textContent = '✓ Nhấn "Next" để thêm frame.';
+                    this.nextBtn.style.display = 'inline-block'; // Show Next button when layout is complete
+                    console.log('Next button should be visible now');
+                }
+
+                // Add selected image info
+                if (this.selectedImageSlot !== null) {
+                    const zoom = this.imageZoomLevels[this.selectedImageSlot] || 1;
+                    const zoomPercent = Math.round(zoom * 100);
+                    this.status.textContent += ` | 🎯 Slot ${this.selectedImageSlot + 1} được chọn (${zoomPercent}%)`;
+                }
+            }
+
+            async goToFrameSelection() {
+                if (Object.keys(this.slotPhotos).length < 4) {
+                    alert('Vui lòng điền đầy đủ 4 slot trước khi thêm frame!');
+                    return;
+                }
+
+                this.showLoading('Đợi emmm mụt xíu nhaaaaa <3');
+
+                // Generate preview image
+                const previewCanvas = document.createElement('canvas');
+                const previewCtx = previewCanvas.getContext('2d');
+
+                previewCanvas.width = 800;
+                previewCanvas.height = 1200;
+
+                previewCtx.imageSmoothingEnabled = true;
+                previewCtx.imageSmoothingQuality = 'high';
+
+                await this.drawFinalImage(previewCtx);
+
+                // Convert to data URL and save to sessionStorage
+                const previewDataUrl = previewCanvas.toDataURL('image/png', 1.0);
+                sessionStorage.setItem('layoutPreview', previewDataUrl);
+
+                // Also save layout configuration for potential future use
+                const layoutData = {
+                    slotPhotos: this.slotPhotos,
+                    imageOffsets: this.imageOffsets,
+                    imageZoomLevels: this.imageZoomLevels,
+                    layoutConfig: this.layoutConfig
+                };
+                sessionStorage.setItem('layoutData', JSON.stringify(layoutData));
+
+                this.hideLoading();
+
+                // Navigate to frame.html
+                window.location.href = 'frame.html';
+            }
+
+            // Add smooth animation for transformations
+            animateTransformation(slotIndex, targetOffset, targetZoom, duration = 300) {
+                const startOffset = this.imageOffsets[slotIndex] || {x: 0, y: 0};
+                const startZoom = this.imageZoomLevels[slotIndex] || 1;
+
+                const startTime = performance.now();
+
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    // Easing function (ease-out cubic)
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+                    // Interpolate values
+                    this.imageOffsets[slotIndex] = {
+                        x: startOffset.x + (targetOffset.x - startOffset.x) * easeProgress,
+                        y: startOffset.y + (targetOffset.y - startOffset.y) * easeProgress
+                    };
+
+                    this.imageZoomLevels[slotIndex] = startZoom + (targetZoom - startZoom) * easeProgress;
+
+                    this.redrawCanvas();
+                    this.updateZoomSlider();
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        this.saveState();
+                    }
+                };
+
+                requestAnimationFrame(animate);
+            }
+
+            // Enhanced fit methods with animation
+            fitImageWidth(slotIndex) {
+                if (!this.slotPhotos[slotIndex]) return;
+
+                const img = new Image();
+                img.onload = () => {
+                    const slot = this.layoutConfig.slots[slotIndex];
+                    // Calculate base scale (fill mode)
+                    const baseScaleX = slot.w / img.naturalWidth;
+                    const baseScaleY = slot.h / img.naturalHeight;
+                    const baseScale = Math.max(baseScaleX, baseScaleY);
+
+                    // Then calculate zoom factor to show full width
+                    const zoom = (slot.w / img.naturalWidth) / baseScale;
+                    this.animateTransformation(slotIndex, {x: 0, y: 0}, zoom);
+                };
+                img.src = this.slotPhotos[slotIndex].url;
+            }
+
+            fitImageHeight(slotIndex) {
+                if (!this.slotPhotos[slotIndex]) return;
+
+                const img = new Image();
+                img.onload = () => {
+                    const slot = this.layoutConfig.slots[slotIndex];
+                    // Calculate base scale (fill mode)
+                    const baseScaleX = slot.w / img.naturalWidth;
+                    const baseScaleY = slot.h / img.naturalHeight;
+                    const baseScale = Math.max(baseScaleX, baseScaleY);
+
+                    // Then calculate zoom factor to show full height
+                    const zoom = (slot.h / img.naturalHeight) / baseScale;
+                    this.animateTransformation(slotIndex, {x: 0, y: 0}, zoom);
+                };
+                img.src = this.slotPhotos[slotIndex].url;
+            }
+
+            fillSlot(slotIndex) {
+                if (!this.slotPhotos[slotIndex]) return;
+
+                const img = new Image();
+                img.onload = () => {
+                    // Reset to default fill (zoom = 1)
+                    this.animateTransformation(slotIndex, {x: 0, y: 0}, 1);
+                };
+                img.src = this.slotPhotos[slotIndex].url;
+            }
+
+            centerImage(slotIndex) {
+                const currentZoom = this.imageZoomLevels[slotIndex] || 1;
+                this.animateTransformation(slotIndex, {x: 0, y: 0}, currentZoom);
+            }
+
+            resetImageTransform(slotIndex) {
+                this.animateTransformation(slotIndex, {x: 0, y: 0}, 1);
+            }
+
+            // New methods for additional functionality
+            handleImageLoad(event) {
+                const files = Array.from(event.target.files);
+                if (files.length === 0) return;
+
+                this.showLoading('Đang tải ảnh...');
+
+                // Convert files to photo objects
+                const loadPromises = files.map((file, index) => {
+                    return new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            resolve({
+                                id: Date.now() + index,
+                                url: e.target.result,
+                                name: file.name
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                });
+
+                Promise.all(loadPromises).then((loadedPhotos) => {
+                    // Add to photos array
+                    this.photos = [...this.photos, ...loadedPhotos];
+
+                    // Re-render photo gallery
+                    this.renderPhotos();
+
+                    this.hideLoading();
+                    this.updateStatus();
+
+                    // Show success message
+                    const count = loadedPhotos.length;
+                    this.status.textContent = `✅ Đã tải ${count} ảnh thành công! Kéo thả vào slots để sử dụng.`;
+                });
+
+                // Reset input
+                event.target.value = '';
+            }
+
+            resetAllSlots() {
+                if (Object.keys(this.slotPhotos).length === 0) {
+                    alert('Không có ảnh nào để xóa!');
+                    return;
+                }
+
+                if (!confirm('🗑️ Xóa tất cả ảnh trong các slots?\n\nHành động này không thể hoàn tác.')) {
+                    return;
+                }
+
+                this.saveState(); // Save current state for undo
+
+                // Clear all slots
+                this.slotPhotos = {};
+                this.imageOffsets = {};
+                this.imageZoomLevels = {};
+
+                // Clear selection
+                this.deselectImage();
+
+                // Update photo gallery - remove assigned class
+                document.querySelectorAll('.photo-item').forEach(el => {
+                    el.classList.remove('assigned');
+                });
+
+                // Redraw canvas
+                this.createEmptyCanvas();
+                this.updateStatus();
+
+                this.status.textContent = '🗑️ Đã xóa tất cả ảnh trong slots!';
+            }
+
+            // Enhanced rendering for better photo management
+            renderPhotos() {
+                this.photoGrid.innerHTML = '';
+
+                if (this.photos.length === 0) {
+                    this.photoGrid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #e91e63; padding: 20px;">Chưa có ảnh nào. Click "Load Images" để tải ảnh.</div>';
+                    return;
+                }
+
+                this.photos.forEach((photo, index) => {
+                    const photoElement = document.createElement('div');
+                    photoElement.className = 'photo-item';
+                    photoElement.draggable = true;
+                    photoElement.dataset.photoId = photo.id;
+
+                    // Check if photo is assigned to any slot
+                    const isAssigned = Object.values(this.slotPhotos).some(p => p.id === photo.id);
+                    if (isAssigned) {
+                        photoElement.classList.add('assigned');
+                    }
+
+                    if (photo.url) {
+                        photoElement.innerHTML = `
+                            <img src="${photo.url}" alt="${photo.name || 'Photo ' + (index + 1)}" draggable="false">
+                            <div class="photo-info">${photo.name || 'Photo ' + (index + 1)}</div>
+                        `;
+                    } else {
+                        photoElement.innerHTML = `
+                            <div class="photo-info">${photo.name || 'Photo ' + (index + 1)}</div>
+                        `;
+                    }
+
+                    this.photoGrid.appendChild(photoElement);
+                });
+            }
+
+            showLoading(message = 'Đang xử lý...') {
+                this.loadingOverlay.classList.remove('hidden');
+                this.loadingOverlay.querySelector('div').textContent = message;
+            }
+
+            hideLoading() {
+                this.loadingOverlay.classList.add('hidden');
+            }
+
+            showError(message) {
+                this.loadingOverlay.innerHTML = `
+                    <div class="error-message">
+                        <strong>Lỗi:</strong> ${message}
+                    </div>
+                    <button class="btn btn-secondary" onclick="location.reload()">
+                        Tải lại
+                    </button>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.layoutManager = new LayoutManager();
+        });
+    </script>
+</body>
+</html>
