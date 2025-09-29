@@ -3,7 +3,19 @@
   "name": "txphotobooth",
   "builds": [
     {
-      "src": "*.html",
+      "src": "home.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "vintage.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "layout.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "frame.html",
       "use": "@vercel/static"
     },
     {
@@ -19,23 +31,7 @@
       "use": "@vercel/static"
     },
     {
-      "src": "fonts/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "galleries/*",
-      "use": "@vercel/static"
-    },
-    {
       "src": "output/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "vintage_output/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "print_out/*",
       "use": "@vercel/static"
     }
   ],
@@ -59,26 +55,6 @@
     {
       "src": "/frame",
       "dest": "/frame.html"
-    },
-    {
-      "src": "/capture",
-      "dest": "/capture.html"
-    },
-    {
-      "src": "/beauty",
-      "dest": "/beauty.html"
-    },
-    {
-      "src": "/bua",
-      "dest": "/bua.html"
-    },
-    {
-      "src": "/backupwebcam",
-      "dest": "/backupwebcam.html"
-    },
-    {
-      "src": "/logo-test",
-      "dest": "/logo-test.html"
     },
     {
       "src": "/(.*)",
@@ -131,7 +107,7 @@
       ]
     },
     {
-      "source": "/fonts/(.*)",
+      "source": "/output/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -139,10 +115,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "app/api/save-photo.js": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
