@@ -1,64 +1,26 @@
 {
   "version": 2,
   "name": "txphotobooth",
-  "builds": [
+  "rewrites": [
     {
-      "src": "home.html",
-      "use": "@vercel/static"
+      "source": "/",
+      "destination": "/home.html"
     },
     {
-      "src": "vintage.html",
-      "use": "@vercel/static"
+      "source": "/home",
+      "destination": "/home.html"
     },
     {
-      "src": "layout.html",
-      "use": "@vercel/static"
+      "source": "/vintage",
+      "destination": "/vintage.html"
     },
     {
-      "src": "frame.html",
-      "use": "@vercel/static"
+      "source": "/layout",
+      "destination": "/layout.html"
     },
     {
-      "src": "images/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "frames/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "filter/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "output/*",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/home.html"
-    },
-    {
-      "src": "/home",
-      "dest": "/home.html"
-    },
-    {
-      "src": "/vintage",
-      "dest": "/vintage.html"
-    },
-    {
-      "src": "/layout",
-      "dest": "/layout.html"
-    },
-    {
-      "src": "/frame",
-      "dest": "/frame.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/frame",
+      "destination": "/frame.html"
     }
   ],
   "headers": [
